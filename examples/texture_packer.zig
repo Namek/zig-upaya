@@ -4,7 +4,7 @@ const math = upaya.math;
 const colors = upaya.colors;
 const fs = std.fs;
 usingnamespace upaya.imgui;
-const stb = @import("stb");
+const stb = upaya.stb;
 
 var atlas: ?upaya.TexturePacker.Atlas = null;
 var texture: ?upaya.Texture = null;
@@ -55,7 +55,7 @@ fn update() void {
                 var pos = ogGetCursorScreenPos();
                 const size = ImVec2{ .x = @intToFloat(f32, a.w), .y = @intToFloat(f32, a.h) };
 
-                ogAddRectFilled(igGetWindowDrawList(), pos, size, colors.rgbToU32(0, 0, 0));
+                ogAddRectFilled(igGetWindowDrawList(), pos, size, colors.rgbToU32(39, 40, 48));
                 ogAddRect(igGetWindowDrawList(), pos, size, colors.rgbToU32(155, 0, 155), 1);
                 _ = ogInvisibleButton("##rects", size, ImGuiButtonFlags_None);
 
@@ -68,7 +68,7 @@ fn update() void {
         } else {
             var pos = ogGetCursorScreenPos();
             const size = ogGetContentRegionAvail();
-            ogAddRectFilled(igGetWindowDrawList(), pos, size, colors.rgbToU32(80, 80, 80));
+            ogAddRectFilled(igGetWindowDrawList(), pos, size, colors.rgbToU32(39, 40, 48));
 
             var text_size: ImVec2 = undefined;
             igCalcTextSize(&text_size, "Drag/drop a folder", null, false, 1024);

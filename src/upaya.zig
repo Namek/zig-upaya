@@ -1,10 +1,10 @@
 const std = @import("std");
 
 // libs
-pub const sokol = @import("sokol");
-pub const stb = @import("stb");
-pub const imgui = @import("imgui");
-pub const filebrowser = @import("filebrowser");
+pub const sokol = @import("deps/sokol/sokol.zig");
+pub const stb = @import("deps/stb/stb.zig");
+pub const imgui = @import("deps/imgui/imgui.zig");
+pub const filebrowser = @import("deps/filebrowser/filebrowser.zig");
 
 // types
 pub const TexturePacker = @import("utils/texture_packer.zig").TexturePacker;
