@@ -9,6 +9,10 @@ const stb = upaya.stb;
 var atlas: ?upaya.TexturePacker.Atlas = null;
 var texture: ?upaya.Texture = null;
 
+var folder: []const u8 = undefined;
+
+var tight: bool = false;
+
 pub fn main() !void {
     upaya.run(.{
         .init = init,
@@ -48,6 +52,11 @@ fn update() void {
             if (ogButton("Save to Desktop")) {
                 const path_or_null = upaya.known_folders.getPath(upaya.mem.tmp_allocator, .desktop) catch unreachable;
                 if (path_or_null) |path| atlas.?.save(path, "test");
+            }
+
+            if (igCheckbox("Tight", &tight)) {
+                onFileDropped(folder);
+
             }
 
             defer igEndChild();
@@ -98,7 +107,8 @@ fn drawChunk(tl: ImVec2, rect: math.Rect) void {
 
 fn onFileDropped(file: []const u8) void {
     if (fs.cwd().openDir(file, .{ .iterate = true })) |dir| {
-        atlas = upaya.TexturePacker.pack(file) catch unreachable;
+        folder = file;
+        atlas = upaya.TexturePacker.pack(file, if (tight) .Tight else .Full) catch unreachable;
         if (texture) |tex| tex.deinit();
         texture = atlas.?.image.asTexture(.nearest);
     } else |err| {

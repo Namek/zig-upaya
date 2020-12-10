@@ -125,7 +125,7 @@ export fn init() void {
     loadDefaultFont();
 
     state.pass_action.colors[0].action = .SG_ACTION_CLEAR;
-    state.pass_action.colors[0].val = [_]f32{ 0.2, 0.2, 0.2, 1.0 };
+    state.pass_action.colors[0].val = [_]f32{ 0.15294117647, 0.15686274510, 0.18823529412, 1 };
 
     state.config.init();
 }

@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const Rect = @import("rect.zig").Rect;
 pub const RectI = @import("rect.zig").RectI;
+pub const Point = @import("point.zig").Point;
 pub const Color = @import("color.zig").Color;
 pub const Mat32 = @import("mat32.zig").Mat32;
 pub const Mat4 = @import("mat4.zig").Mat4;

@@ -1,6 +1,7 @@
 const std = @import("std");
 const upaya = @import("upaya_cli.zig");
 const Texture = @import("texture.zig").Texture;
+const Point = @import("math/point.zig").Point;
 
 /// Image is a CPU side array of color data with some helper methods that can be used to prep data
 /// before creating a Texture
@@ -90,5 +91,133 @@ pub const Image = struct {
         }
 
         return false;
+    }
+
+    /// crops image and returns the origin offset of the new image
+    pub fn crop(self: *Image) Point {
+        const padding: usize = 1;
+
+        var top: usize = 0;
+        var bottom: usize = self.h;
+        var left: usize = 0;
+        var right: usize = self.w;
+
+        var x: usize = 0;
+        var y: usize = 0;
+        var w = self.w;
+        var h = self.h;
+
+        // find top pixel
+        topPixelLoop: while (h > 0) : (h -= 1) {
+            const row = self.pixels[y * w .. (y * w) + w];
+            for (row) |p, i| {
+                if (p & 0xFF000000 != 0) {
+                    // row contains a pixel
+                    break :topPixelLoop;
+                }
+            }
+            y += 1;
+            top += 1;
+        }
+
+        //y -= padding;
+        top -= padding;
+        //reset h to new h
+        h = self.h - y;
+        // pad y
+        y -= padding;
+        //find bottom pixel
+        y = self.h - 1;
+        bottomPixelLoop: while (h > 0) : (h -= 1) {
+            const row = self.pixels[y * w .. (y * w) + w];
+            for (row) |p, i| {
+                if (p & 0xFF000000 != 0) {
+                    // row contains a pixel
+                    break :bottomPixelLoop;
+                }
+            }
+            y -= 1;
+            bottom -= 1;
+        }
+        
+
+        // create a new image and copy over the vertically cropped pixels
+        var verticalCroppedImage = Image.init(w, h + padding);
+
+        std.mem.copy(u32, verticalCroppedImage.pixels, self.pixels[top * w .. bottom * w]);
+
+        //find left pixel
+
+        w = verticalCroppedImage.w;
+        h = verticalCroppedImage.h;
+        var tempY: usize = 0;
+
+        var leftPixel: usize = w;
+
+        while (h > 0) : (h -= 1) {
+            // iterate each row and find the one with the
+            // left most pixel
+            const row = verticalCroppedImage.pixels[tempY * w .. (tempY * w) + w];
+
+            for (row) |p, i| {
+                if (p & 0xFF000000 != 0) {
+                    if (i < leftPixel)
+                        leftPixel = i;
+
+                    break;
+                }
+            }
+
+            tempY += 1;
+        }
+
+        leftPixel -= padding;
+        // x offset is now the leftmost pixel index
+        x = leftPixel;
+
+        // reset height for iteration
+        h = verticalCroppedImage.h;
+
+        var rightPixel: usize = 0;
+
+        //find right pixel
+        tempY = 0;
+        while (h > 0) : (h -= 1) {
+            const row = verticalCroppedImage.pixels[tempY * w .. (tempY * w) + w];
+
+            var i = row.len - 1;
+
+            while (i > 0) : (i -= 1) {
+                if (row[i] & 0xFF000000 != 0) {
+                    if (i > rightPixel)
+                        rightPixel = i;
+                    break;
+                }
+            }
+
+            tempY += 1;
+        }
+
+        rightPixel += padding;
+        h = verticalCroppedImage.h;
+        w = rightPixel - leftPixel;
+        var croppedImage = Image.init(w, h);
+
+        tempY = 0;
+        while (h > 0) : (h -= 1) {
+            const row = verticalCroppedImage.pixels[tempY * verticalCroppedImage.w .. (tempY * verticalCroppedImage.w) + verticalCroppedImage.w];
+            const copy = row[leftPixel..rightPixel];
+            const dest = croppedImage.pixels[tempY * croppedImage.w .. (tempY * croppedImage.w) + croppedImage.w];
+            std.mem.copy(u32, dest, copy);
+
+            tempY += 1;
+        }
+
+        self.w = croppedImage.w;
+        self.h = croppedImage.h;
+
+        std.mem.copy(u32, self.pixels, croppedImage.pixels);
+
+        return .{ .x = @intCast(i32, x), .y = @intCast(i32, y) };
     }
 };
