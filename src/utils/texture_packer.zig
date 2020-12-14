@@ -6,37 +6,43 @@ const math = upaya.math;
 const stb = upaya.stb;
 
 pub const TexturePacker = struct {
+
+    pub const Sprite = struct {
+        name: []const u8,
+        source: math.Rect,
+        origin: math.Point,
+    };
+
     pub const Atlas = struct {
-        names: [][]const u8,
-        rects: []math.RectI,
-        origins: []math.Point,
-        w: u16,
-        h: u16,
+        sprites: []Sprite,
+        width: u16,
+        height: u16,
         image: upaya.Image = undefined,
 
         pub fn init(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, size: Size, method: PackingMethod) Atlas {
             std.debug.assert(frames.len == files.len);
             var res_atlas = Atlas{
-                .names = upaya.mem.allocator.alloc([]const u8, files.len) catch unreachable,
-                .rects = upaya.mem.allocator.alloc(math.RectI, frames.len) catch unreachable,
-                .origins = origins,
-                .w = size.width,
-                .h = size.height,
+                .sprites = upaya.mem.allocator.alloc(Sprite, files.len) catch unreachable,
+                .width = size.width,
+                .height = size.height,
             };
 
             // convert to upaya rects
             for (frames) |frame, i| {
-                res_atlas.rects[i] = .{ .x = frame.x, .y = frame.y, .w = frame.w, .h = frame.h };
+                res_atlas.sprites[i].source = .{ .x = frame.x, .y = frame.y, .width = frame.w, .height = frame.h };
             }
 
             for (files) |file, i| {
-                res_atlas.names[i] = upaya.mem.allocator.dupe(u8, fs.path.basename(file)) catch unreachable;
+                res_atlas.sprites[i].name = upaya.mem.allocator.dupe(u8, fs.path.basename(file)) catch unreachable;
+            }
+
+            for (origins) |origin, i| {
+                res_atlas.sprites[i].origin = origin;
             }
 
             // generate the atlas
             var image = upaya.Image.init(size.width, size.height);
-            image.fillRect(.{ .w = size.width, .h = size.height }, upaya.math.Color.transparent);
-
+            image.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
 
             for (files) |file, i| {
                 var sub_image = upaya.Image.initFromFile(file);
@@ -44,7 +50,7 @@ pub const TexturePacker = struct {
                 if (method == .Tight) {
                     _ = sub_image.crop();
                 }
-                    
+
                 image.blit(sub_image, frames[i].x, frames[i].y);
             }
 
@@ -53,12 +59,10 @@ pub const TexturePacker = struct {
         }
 
         pub fn deinit(self: Atlas) void {
-            for (self.names) |name| {
-                upaya.mem.allocator.free(name);
+            for (self.sprites) |sprite| {
+                upaya.mem.allocator.free(sprite.name);
             }
-            upaya.mem.allocator.free(self.names);
-            upaya.mem.allocator.free(self.rects);
-            upaya.mem.allocator.free(self.origins);
+            upaya.mem.allocator.free(self.sprites);
             self.image.deinit();
         }
 
@@ -77,8 +81,7 @@ pub const TexturePacker = struct {
             const out_stream = handle.writer();
             const options = std.json.StringifyOptions{ .whitespace = .{} };
 
-            std.json.stringify(.{ .names = self.names, .rects = self.rects, .origins = self.origins }, options, out_stream) catch unreachable;
-
+            std.json.stringify(.{ .sprites = self.sprites }, options, out_stream) catch unreachable;
         }
     };
 
@@ -92,20 +95,27 @@ pub const TexturePacker = struct {
         Tight,
     };
 
-    
-    pub fn pack(folder: []const u8, method: PackingMethod) !Atlas {
+    pub const DefaultOrigin = enum {
+        TL, TR, BL, BR, Center, Custom
+    };
+
+    pub const AtlasConfig = struct {
+        method: PackingMethod = .Full, default_origin: DefaultOrigin = .TL, custom_origin: math.Point = .{ .x = 0, .y = 0 }
+    };
+
+    pub fn pack(folder: []const u8, config: AtlasConfig) !Atlas {
         const pngs = upaya.fs.getAllFilesOfType(upaya.mem.allocator, folder, ".png", true);
         var origins = std.ArrayList(math.Point).init(upaya.mem.allocator);
-        const frames = getFramesForPngs(pngs, &origins, method);
+        const frames = getFramesForPngs(pngs, &origins, config);
 
         if (runRectPacker(frames)) |atlas_size| {
-            return Atlas.init(frames, origins.items, pngs, atlas_size, method);
+            return Atlas.init(frames, origins.items, pngs, atlas_size, config.method);
         } else {
             return error.NotEnoughRoom;
         }
     }
 
-    fn getFramesForPngs(pngs: [][]const u8, origins: *std.ArrayList(math.Point), method: PackingMethod) []stb.stbrp_rect {
+    fn getFramesForPngs(pngs: [][]const u8, origins: *std.ArrayList(math.Point), config: AtlasConfig) []stb.stbrp_rect {
         var frames = std.ArrayList(stb.stbrp_rect).init(upaya.mem.allocator);
         for (pngs) |png, i| {
             var w: c_int = undefined;
@@ -114,10 +124,24 @@ pub const TexturePacker = struct {
             var tex = upaya.Image.initFromFile(png);
             defer tex.deinit();
 
-            if (method == .Tight)
-                origins.*.append(tex.crop()) catch unreachable;
+            var origin: math.Point = switch (config.default_origin) {
+                .TL => .{ .x = 0, .y = 0 },
+                .TR => .{ .x = @intCast(i32, tex.w), .y = 0 },
+                .BL => .{ .x = 0, .y = @intCast(i32, tex.h) },
+                .BR => .{ .x = @intCast(i32, tex.w), .y = @intCast(i32, tex.h) },
+                .Center => .{ .x = @divExact(@intCast(i32, tex.w), 2), .y = @divExact(@intCast(i32, tex.h), 2) },
+                .Custom => config.custom_origin,
+            };
 
-            //const tex_size = upaya.Image.getTextureSize(png, &w, &h);
+            if (config.method == .Tight) {
+                var offset = tex.crop();
+                origins.*.append(.{ .x = origin.x - offset.x, .y = origin.y - offset.y }) catch unreachable;
+            }
+
+            if (config.method == .Full) {
+                origins.*.append(origin) catch unreachable;
+            }
+
             frames.append(.{
                 .id = @intCast(c_int, i),
                 .w = @intCast(u16, tex.w),
@@ -144,7 +168,7 @@ pub const TexturePacker = struct {
 
         for (texture_sizes) |tex_size| {
             stb.stbrp_init_target(&ctx, tex_size[0], tex_size[1], &nodes, node_count);
-            stb.stbrp_setup_heuristic(&ctx, stb.STBRP_HEURISTIC_Skyline_default); 
+            stb.stbrp_setup_heuristic(&ctx, stb.STBRP_HEURISTIC_Skyline_default);
             if (stb.stbrp_pack_rects(&ctx, frames.ptr, @intCast(c_int, frames.len)) == 1) {
                 return Size{ .width = @intCast(u16, tex_size[0]), .height = @intCast(u16, tex_size[1]) };
             }

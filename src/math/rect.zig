@@ -1,99 +1,99 @@
 const std = @import("std");
 const Edge = @import("edge.zig").Edge;
 
-pub const Rect = struct {
+pub const RectF = struct {
     x: f32 = 0,
     y: f32 = 0,
-    w: f32 = 0,
-    h: f32 = 0,
+    width: f32 = 0,
+    height: f32 = 0,
 };
 
-pub const RectI = struct {
+pub const Rect = struct {
     x: i32 = 0,
     y: i32 = 0,
-    w: i32 = 0,
-    h: i32 = 0,
+    width: i32 = 0,
+    height: i32 = 0,
 
-    pub fn right(self: RectI) i32 {
-        return self.x + self.w;
+    pub fn right(self: Rect) i32 {
+        return self.x + self.width;
     }
 
-    pub fn left(self: RectI) i32 {
+    pub fn left(self: Rect) i32 {
         return self.x;
     }
 
-    pub fn top(self: RectI) i32 {
+    pub fn top(self: Rect) i32 {
         return self.y;
     }
 
-    pub fn bottom(self: RectI) i32 {
-        return self.y + self.h;
+    pub fn bottom(self: Rect) i32 {
+        return self.y + self.height;
     }
 
-    pub fn centerX(self: RectI) i32 {
-        return self.x + @divTrunc(self.w, 2);
+    pub fn centerX(self: Rect) i32 {
+        return self.x + @divTrunc(self.width, 2);
     }
 
-    pub fn centerY(self: RectI) i32 {
-        return self.y + @divTrunc(self.h, 2);
+    pub fn centerY(self: Rect) i32 {
+        return self.y + @divTrunc(self.height, 2);
     }
 
-    pub fn halfRect(self: RectI, edge: Edge) RectI {
+    pub fn halfRect(self: Rect, edge: Edge) Rect {
         return switch (edge) {
-            .top => RectI{ .x = self.x, .y = self.y, .w = self.w, .h = @divTrunc(self.h, 2) },
-            .bottom => RectI{ .x = self.x, .y = self.y + @divTrunc(self.h, 2), .w = self.w, .h = @divTrunc(self.h, 2) },
-            .left => RectI{ .x = self.x, .y = self.y, .w = @divTrunc(self.w, 2), .h = self.h },
-            .right => RectI{ .x = self.x + @divTrunc(self.w, 2), .y = self.y, .w = @divTrunc(self.w, 2), .h = self.h },
+            .top => Rect{ .x = self.x, .y = self.y, .width = self.width, .h = @divTrunc(self.height, 2) },
+            .bottom => Rect{ .x = self.x, .y = self.y + @divTrunc(self.h, 2), .width = self.width, .height = @divTrunc(self.height, 2) },
+            .left => Rect{ .x = self.x, .y = self.y, .width = @divTrunc(self.width, 2), .h = self.height },
+            .right => Rect{ .x = self.x + @divTrunc(self.width, 2), .y = self.y, .width = @divTrunc(self.width, 2), .height = self.height },
         };
     }
 
-    pub fn contract(self: *RectI, horiz: i32, vert: i32) void {
-        self.x += horiz;
+    pub fn contract(self: *Rect, hor: i32, vert: i32) void {
+        self.x += hor;
         self.y += vert;
-        self.w -= horiz * 2;
-        self.h -= vert * 2;
+        self.width -= horiz * 2;
+        self.height -= vert * 2;
     }
 
-    pub fn expandEdge(self: *RectI, edge: Edge, move_x: i32) void {
+    pub fn expandEdge(self: *Rect, edge: Edge, move_x: i32) void {
         const amt = std.math.absInt(move_x) catch unreachable;
 
         switch (edge) {
             .top => {
                 self.y -= amt;
-                self.h += amt;
+                self.height += amt;
             },
             .bottom => {
-                self.h += amt;
+                self.height += amt;
             },
             .left => {
                 self.x -= amt;
-                self.w += amt;
+                self.width += amt;
             },
             .right => {
-                self.w += amt;
+                self.width += amt;
             },
         }
     }
 
-    pub fn side(self: RectI, edge: Edge) i32 {
+    pub fn side(self: Rect, edge: Edge) i32 {
         return switch (edge) {
             .left => self.x,
-            .right => self.x + self.w,
+            .right => self.x + self.width,
             .top => self.y,
-            .bottom => self.y + self.h,
+            .bottom => self.y + self.height,
         };
     }
 
-    pub fn contains(self: RectI, x: i32, y: i32) bool {
+    pub fn contains(self: Rect, x: i32, y: i32) bool {
         return self.x <= x and x < self.right() and self.y <= y and y < self.bottom();
     }
 
-    pub fn asRect(self: RectI) Rect {
+    pub fn asRectF(self: Rect) RectF {
         return .{
             .x = @intToFloat(f32, self.x),
             .y = @intToFloat(f32, self.y),
-            .w = @intToFloat(f32, self.w),
-            .h = @intToFloat(f32, self.h),
+            .width = @intToFloat(f32, self.width),
+            .height = @intToFloat(f32, self.height),
         };
     }
 };

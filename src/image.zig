@@ -37,11 +37,11 @@ pub const Image = struct {
         upaya.mem.allocator.free(self.pixels);
     }
 
-    pub fn fillRect(self: *Image, rect: upaya.math.RectI, color: upaya.math.Color) void {
+    pub fn fillRect(self: *Image, rect: upaya.math.Rect, color: upaya.math.Color) void {
         const x = @intCast(usize, rect.x);
         var y = @intCast(usize, rect.y);
-        const w = @intCast(usize, rect.w);
-        var h = @intCast(usize, rect.h);
+        const w = @intCast(usize, rect.width);
+        var h = @intCast(usize, rect.height);
 
         var data = self.pixels[x + y * self.w ..];
         while (h > 0) : (h -= 1) {
@@ -99,8 +99,6 @@ pub const Image = struct {
 
         var top: usize = 0;
         var bottom: usize = self.h;
-        var left: usize = 0;
-        var right: usize = self.w;
 
         var x: usize = 0;
         var y: usize = 0;
@@ -126,17 +124,18 @@ pub const Image = struct {
         h = self.h - y;
         // pad y
         y -= padding;
+
         //find bottom pixel
-        y = self.h - 1;
+        var tempY = self.h - 1;
         bottomPixelLoop: while (h > 0) : (h -= 1) {
-            const row = self.pixels[y * w .. (y * w) + w];
+            const row = self.pixels[tempY * w .. (tempY * w) + w];
             for (row) |p, i| {
                 if (p & 0xFF000000 != 0) {
                     // row contains a pixel
                     break :bottomPixelLoop;
                 }
             }
-            y -= 1;
+            tempY -= 1;
             bottom -= 1;
         }
         
@@ -147,10 +146,9 @@ pub const Image = struct {
         std.mem.copy(u32, verticalCroppedImage.pixels, self.pixels[top * w .. bottom * w]);
 
         //find left pixel
-
         w = verticalCroppedImage.w;
         h = verticalCroppedImage.h;
-        var tempY: usize = 0;
+        tempY = 0;
 
         var leftPixel: usize = w;
 
@@ -171,7 +169,9 @@ pub const Image = struct {
             tempY += 1;
         }
 
+        // pad the left pixel
         leftPixel -= padding;
+
         // x offset is now the leftmost pixel index
         x = leftPixel;
 
@@ -180,7 +180,7 @@ pub const Image = struct {
 
         var rightPixel: usize = 0;
 
-        //find right pixel
+        // find right pixel
         tempY = 0;
         while (h > 0) : (h -= 1) {
             const row = verticalCroppedImage.pixels[tempY * w .. (tempY * w) + w];
@@ -198,11 +198,15 @@ pub const Image = struct {
             tempY += 1;
         }
 
+        // pad right pixel
         rightPixel += padding;
+
+        // create final image
         h = verticalCroppedImage.h;
         w = rightPixel - leftPixel;
         var croppedImage = Image.init(w, h);
 
+        // copy rows into the final cropped image
         tempY = 0;
         while (h > 0) : (h -= 1) {
             const row = verticalCroppedImage.pixels[tempY * verticalCroppedImage.w .. (tempY * verticalCroppedImage.w) + verticalCroppedImage.w];
@@ -216,6 +220,7 @@ pub const Image = struct {
         self.w = croppedImage.w;
         self.h = croppedImage.h;
 
+        // copy pixels into the existing image overwriting
         std.mem.copy(u32, self.pixels, croppedImage.pixels);
 
         return .{ .x = @intCast(i32, x), .y = @intCast(i32, y) };
