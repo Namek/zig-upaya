@@ -13,12 +13,12 @@ pub fn build(b: *Builder) void {
     // first item in list will be added as "run" so `zig build run` will always work
     const examples = [_][2][]const u8{
         [_][]const u8{ "texture_packer", "examples/texture_packer.zig" },
+        [_][]const u8{ "empty", "examples/empty.zig" },
+        [_][]const u8{ "offscreen_rendering", "examples/offscreen_rendering.zig" },
         [_][]const u8{ "tilescript", "tilescript/ts_main.zig" },
         [_][]const u8{ "tilemap", "examples/tilemap/tilemap_main.zig" },
         [_][]const u8{ "editor", "examples/editor/editor_main.zig" },
         [_][]const u8{ "texture_packer_cli", "examples/texture_packer_cli.zig" },
-        [_][]const u8{ "empty", "examples/empty.zig" },
-        [_][]const u8{ "offscreen_rendering", "examples/offscreen_rendering.zig" },
         [_][]const u8{ "todo", "examples/todo.zig" },
         [_][]const u8{ "docking", "examples/docking.zig" },
     };
@@ -39,7 +39,7 @@ fn createExe(b: *Builder, target: std.build.Target, name: []const u8, source: []
 
     var exe = b.addExecutable(name, source);
     exe.setBuildMode(b.standardReleaseOptions());
-    exe.setOutputDir(std.fs.path.joinPosix(b.allocator, &[_][]const u8{ b.cache_root, "bin" }) catch unreachable);
+    exe.setOutputDir(std.fs.path.join(b.allocator, &[_][]const u8{ b.cache_root, "bin" }) catch unreachable);
     exe.setTarget(target);
 
     if (is_cli) {
