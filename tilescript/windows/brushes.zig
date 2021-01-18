@@ -13,7 +13,7 @@ pub fn drawWindow(state: *ts.AppState) void {
 }
 
 pub fn drawPopup(state: *ts.AppState, popup_id: [*c]const u8) void {
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopup(popup_id, ImGuiWindowFlags_NoTitleBar)) {
         draw(state, state.map_rect_size, false);
         igEndPopup();
@@ -26,7 +26,7 @@ pub fn draw(state: *ts.AppState, rect_size: f32, skip_input_processing: bool) vo
     const draw_list = igGetWindowDrawList();
 
     var pos = ogGetCursorScreenPos();
-    _ = igInvisibleButton("##but", .{ .x = canvas_size, .y = canvas_size });
+    _ = ogInvisibleButton("##but", .{ .x = canvas_size, .y = canvas_size }, ImGuiButtonFlags_None);
     const mouse_pos = igGetIO().MousePos;
     const hovered = igIsItemHovered(ImGuiHoveredFlags_None);
 
@@ -45,7 +45,7 @@ pub fn draw(state: *ts.AppState, rect_size: f32, skip_input_processing: bool) vo
                 const size = rect_size - thickness;
                 tl.x += thickness / 2;
                 tl.y += thickness / 2;
-                ImDrawList_AddQuad(draw_list, .{ .x = tl.x, .y = tl.y }, .{ .x = tl.x + size, .y = tl.y }, .{ .x = tl.x + size, .y = tl.y + size }, .{ .x = tl.x, .y = tl.y + size }, colors.brush_selected, 2);
+                ogImDrawList_AddQuad(draw_list, &ImVec2{ .x = tl.x, .y = tl.y }, &ImVec2{ .x = tl.x + size, .y = tl.y }, &ImVec2{ .x = tl.x + size, .y = tl.y + size }, &ImVec2{ .x = tl.x, .y = tl.y + size }, colors.brush_selected, 2);
             }
 
             if (hovered and !skip_input_processing) {
@@ -65,7 +65,7 @@ pub fn drawBrush(rect_size: f32, index: usize, tl: ImVec2) void {
     const color_index = @mod(index, 14);
     const set = @divTrunc(index, 14);
 
-    ImDrawList_AddQuadFilled(igGetWindowDrawList(), ImVec2{ .x = tl.x, .y = tl.y }, ImVec2{ .x = tl.x + rect_size, .y = tl.y }, ImVec2{ .x = tl.x + rect_size, .y = tl.y + rect_size }, ImVec2{ .x = tl.x, .y = tl.y + rect_size }, colors.brushes[color_index]);
+    ogImDrawList_AddQuadFilled(igGetWindowDrawList(), &ImVec2{ .x = tl.x, .y = tl.y }, &ImVec2{ .x = tl.x + rect_size, .y = tl.y }, &ImVec2{ .x = tl.x + rect_size, .y = tl.y + rect_size }, &ImVec2{ .x = tl.x, .y = tl.y + rect_size }, colors.brushes[color_index]);
 
     const mini_size = rect_size / 2;
     var pt = tl;
@@ -73,8 +73,8 @@ pub fn drawBrush(rect_size: f32, index: usize, tl: ImVec2) void {
     pt.y += (rect_size - mini_size) / 2;
 
     if (set == 1) {
-        ImDrawList_AddQuadFilled(igGetWindowDrawList(), ImVec2{ .x = pt.x, .y = pt.y }, ImVec2{ .x = pt.x + mini_size, .y = pt.y }, ImVec2{ .x = pt.x + mini_size, .y = pt.y + mini_size }, ImVec2{ .x = pt.x, .y = pt.y + mini_size }, colors.colorRgba(0, 0, 0, 100));
+        ogImDrawList_AddQuadFilled(igGetWindowDrawList(), &ImVec2{ .x = pt.x, .y = pt.y }, &ImVec2{ .x = pt.x + mini_size, .y = pt.y }, &ImVec2{ .x = pt.x + mini_size, .y = pt.y + mini_size }, &ImVec2{ .x = pt.x, .y = pt.y + mini_size }, colors.colorRgba(0, 0, 0, 100));
     } else if (set == 2) {
-        ImDrawList_AddQuad(igGetWindowDrawList(), ImVec2{ .x = pt.x, .y = pt.y }, ImVec2{ .x = pt.x + mini_size, .y = pt.y }, ImVec2{ .x = pt.x + mini_size, .y = pt.y + mini_size }, ImVec2{ .x = pt.x, .y = pt.y + mini_size }, colors.colorRgba(0, 0, 0, 150), 1);
+        ogImDrawList_AddQuad(igGetWindowDrawList(), &ImVec2{ .x = pt.x, .y = pt.y }, &ImVec2{ .x = pt.x + mini_size, .y = pt.y }, &ImVec2{ .x = pt.x + mini_size, .y = pt.y + mini_size }, &ImVec2{ .x = pt.x, .y = pt.y + mini_size }, colors.colorRgba(0, 0, 0, 150), 1);
     }
 }

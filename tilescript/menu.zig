@@ -342,7 +342,7 @@ fn loadTilesetPopup(state: *ts.AppState) void {
         igSeparator();
 
         var size = ogGetContentRegionAvail();
-        if (igButton("Cancel", ImVec2{ .x = (size.x - 4) / 2 })) {
+        if (ogButtonEx("Cancel", ImVec2{ .x = (size.x - 4) / 2 })) {
             igCloseCurrentPopup();
         }
         igSameLine(0, 4);
@@ -420,7 +420,7 @@ fn resizeMapPopup(state: *ts.AppState) void {
         igSpacing();
 
         var size = ogGetContentRegionAvail();
-        if (igButton("Cancel", ImVec2{ .x = (size.x - 4) / 2 })) {
+        if (ogButtonEx("Cancel", ImVec2{ .x = (size.x - 4) / 2 })) {
             igCloseCurrentPopup();
         }
         igSameLine(0, 4);
@@ -434,7 +434,7 @@ fn resizeMapPopup(state: *ts.AppState) void {
 var help_section: enum { overview, input_map, rules, rulesets, tags_objects, tile_definitions, shortcuts } = .overview;
 
 fn helpPopup() void {
-    igSetNextWindowSize(.{ .x = 500, .y = -1 }, ImGuiCond_Always);
+    ogSetNextWindowSize(.{ .x = 500, .y = -1 }, ImGuiCond_Always);
     if (igBeginPopupModal("Help", null, ImGuiWindowFlags_AlwaysAutoResize)) {
         defer igEndPopup();
 
@@ -445,25 +445,26 @@ fn helpPopup() void {
         if (igListBoxHeaderVec2("", .{})) {
             defer igListBoxFooter();
 
-            if (igSelectableBool("Overview", help_section == .overview, ImGuiSelectableFlags_DontClosePopups, .{})) {
+
+            if (ogSelectableBool("Overview", help_section == .overview, ImGuiSelectableFlags_DontClosePopups, .{})) {
                 help_section = .overview;
             }
-            if (igSelectableBool("Input Map", help_section == .input_map, ImGuiSelectableFlags_DontClosePopups, .{})) {
+            if (ogSelectableBool("Input Map", help_section == .input_map, ImGuiSelectableFlags_DontClosePopups, .{})) {
                 help_section = .input_map;
             }
-            if (igSelectableBool("Rules", help_section == .rules, ImGuiSelectableFlags_DontClosePopups, .{})) {
+            if (ogSelectableBool("Rules", help_section == .rules, ImGuiSelectableFlags_DontClosePopups, .{})) {
                 help_section = .rules;
             }
-            if (igSelectableBool("RuleSets", help_section == .rulesets, ImGuiSelectableFlags_DontClosePopups, .{})) {
+            if (ogSelectableBool("RuleSets", help_section == .rulesets, ImGuiSelectableFlags_DontClosePopups, .{})) {
                 help_section = .rulesets;
             }
-            if (igSelectableBool("Tags/Objects", help_section == .tags_objects, ImGuiSelectableFlags_DontClosePopups, .{})) {
+            if (ogSelectableBool("Tags/Objects", help_section == .tags_objects, ImGuiSelectableFlags_DontClosePopups, .{})) {
                 help_section = .tags_objects;
             }
-            if (igSelectableBool("Tile Defs", help_section == .tile_definitions, ImGuiSelectableFlags_DontClosePopups, .{})) {
+            if (ogSelectableBool("Tile Defs", help_section == .tile_definitions, ImGuiSelectableFlags_DontClosePopups, .{})) {
                 help_section = .tile_definitions;
             }
-            if (igSelectableBool("Shortcuts", help_section == .shortcuts, ImGuiSelectableFlags_DontClosePopups, .{})) {
+            if (ogSelectableBool("Shortcuts", help_section == .shortcuts, ImGuiSelectableFlags_DontClosePopups, .{})) {
                 help_section = .shortcuts;
             }
         }

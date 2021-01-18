@@ -7,13 +7,13 @@ const brushes_win = @import("brushes.zig");
 var buffer: [25]u8 = undefined;
 
 pub fn draw(state: *ts.AppState) void {
-    igPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, ImVec2{ .x = 200, .y = 200 });
+    ogPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, ImVec2{ .x = 200, .y = 200 });
     defer igPopStyleVar(1);
 
     if (state.prefs.windows.animations and igBegin("Animations", &state.prefs.windows.animations, ImGuiWindowFlags_None)) {
         defer igEnd();
 
-        if (igBeginChildEx("##animations-child", igGetItemID(), ImVec2{ .y = -igGetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_None)) {
+        if (ogBeginChildEx("##animations-child", igGetItemID(), ImVec2{ .y = -igGetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_None)) {
             defer igEndChild();
 
             var delete_index: usize = std.math.maxInt(usize);

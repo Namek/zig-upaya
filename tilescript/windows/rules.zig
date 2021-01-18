@@ -82,7 +82,7 @@ fn drawRuleSetTabButtons(state: *ts.AppState, cursor: ImVec2, open_repeat_popup:
 }
 
 pub fn draw(state: *ts.AppState) void {
-    igPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, .{ .x = 365 });
+    ogPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, .{ .x = 365 });
     defer igPopStyleVar(1);
 
     current_ruleset = std.math.maxInt(usize);
@@ -97,7 +97,7 @@ pub fn draw(state: *ts.AppState) void {
         drawRuleSetTabButtons(state, cursor, &open_repeat_popup);
         igGetCursorStartPos(&cursor);
         cursor.y += igGetFrameHeightWithSpacing();
-        igSetCursorPos(cursor);
+        ogSetCursorPos(cursor);
     }
 
     if (igBeginTabBar("Rules##tabbar", ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_FittingPolicyScroll)) {

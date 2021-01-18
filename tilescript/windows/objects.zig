@@ -10,14 +10,14 @@ var filter = false;
 var selected_index: usize = std.math.maxInt(usize);
 
 pub fn draw(state: *ts.AppState) void {
-    igPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, ImVec2{ .x = 200, .y = 100 });
+    ogPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, ImVec2{ .x = 200, .y = 100 });
     defer igPopStyleVar(1);
 
     if (state.prefs.windows.objects) {
         _ = igBegin("Objects", &state.prefs.windows.objects, ImGuiWindowFlags_None);
         defer igEnd();
 
-        if (igBeginChildEx("##obj-child", igGetItemID(), .{ .y = -igGetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_None)) {
+        if (ogBeginChildEx("##obj-child", igGetItemID(), .{ .y = -igGetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_None)) {
             defer igEndChild();
 
             igPushItemWidth(igGetWindowContentRegionWidth());

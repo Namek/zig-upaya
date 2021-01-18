@@ -8,7 +8,7 @@ var inspected_object_index: ?usize = null;
 
 pub fn draw(state: *ts.AppState) void {
     if (state.prefs.windows.object_editor) {
-        igPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, ImVec2{ .x = 200, .y = 100 });
+        ogPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, ImVec2{ .x = 200, .y = 100 });
         defer igPopStyleVar(1);
 
         _ = igBegin("Object Editor", &state.prefs.windows.object_editor, ImGuiWindowFlags_None);
@@ -89,7 +89,7 @@ pub fn draw(state: *ts.AppState) void {
             igPopStyleVar(1);
         }
 
-        igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+        ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
         if (igBeginPopup("##add-property", ImGuiWindowFlags_None)) {
             addPropertyPopup(state);
             igEndPopup();

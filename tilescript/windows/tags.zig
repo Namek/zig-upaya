@@ -4,14 +4,14 @@ const ts = @import("../tilescript.zig");
 usingnamespace @import("imgui");
 
 pub fn draw(state: *ts.AppState) void {
-    igPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, .{ .x = 220, .y = 100 });
+    ogPushStyleVarVec2(ImGuiStyleVar_WindowMinSize, .{ .x = 220, .y = 100 });
     defer igPopStyleVar(1);
 
     if (state.prefs.windows.tags) {
         if (igBegin("Tags", &state.prefs.windows.tags, ImGuiWindowFlags_None)) {
             defer igEnd();
-
-            if (igBeginChildEx("##tag-child", igGetItemID(), .{ .y = -igGetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_None)) {
+            
+            if (ogBeginChildEx("##tag-child", igGetItemID(), .{ .y = -igGetFrameHeightWithSpacing() }, false, ImGuiWindowFlags_None)) {
                 defer igEndChild();
 
                 var delete_index: usize = std.math.maxInt(usize);
@@ -32,7 +32,7 @@ pub fn draw(state: *ts.AppState) void {
                         delete_index = i;
                     }
 
-                    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+                    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
                     if (igBeginPopup("tag-tiles", ImGuiWindowFlags_None)) {
                         defer igEndPopup();
                         tagTileSelectorPopup(state, tag);

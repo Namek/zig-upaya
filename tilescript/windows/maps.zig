@@ -142,7 +142,7 @@ fn handleInput(state: *ts.AppState, origin: ImVec2, input_map: bool) void {
         const max_y = @intToFloat(f32, std.math.min(tile1.y, tile2.y)) * state.map_rect_size + origin.y;
 
         const color = if (igIsMouseDragging(ImGuiMouseButton_Left, 0)) colors.colorRgb(255, 255, 255) else colors.colorRgb(220, 0, 0);
-        ImDrawList_AddQuad(igGetWindowDrawList(), .{ .x = min_x, .y = max_y }, .{ .x = max_x, .y = max_y }, .{ .x = max_x, .y = min_y }, .{ .x = min_x, .y = min_y }, color, 2);
+        ogImDrawList_AddQuad(igGetWindowDrawList(), &ImVec2{ .x = min_x, .y = max_y }, &ImVec2{ .x = max_x, .y = max_y }, &ImVec2{ .x = max_x, .y = min_y }, &ImVec2{ .x = min_x, .y = min_y }, color, 2);
 
         shift_dragged = true;
     } else if ((igIsMouseReleased(ImGuiMouseButton_Left) or igIsMouseReleased(ImGuiMouseButton_Right)) and shift_dragged) {

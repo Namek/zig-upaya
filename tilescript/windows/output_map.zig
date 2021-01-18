@@ -77,7 +77,7 @@ fn draw(state: *ts.AppState) void {
                         tl_offset.y += half_rect;
 
                         const other = ImVec2{ .x = origin.x + half_rect + @intToFloat(f32, linked_obj.x) * state.map_rect_size, .y = origin.y + half_rect + @intToFloat(f32, linked_obj.y) * state.map_rect_size };
-                        ImDrawList_AddLine(igGetWindowDrawList(), tl_offset, other, colors.object_link, 1);
+                        ogImDrawList_AddLine(igGetWindowDrawList(), tl_offset, other, colors.object_link, 1);
                     },
                     else => {},
                 }
@@ -152,7 +152,7 @@ fn handleInput(state: *ts.AppState, origin: ImVec2) void {
                     }
                 }
 
-                ImDrawList_AddLine(igGetWindowDrawList(), igGetIO().MouseClickedPos[1], igGetIO().MousePos, colors.object_drag_link, 2);
+                ogImDrawList_AddLine(igGetWindowDrawList(), igGetIO().MouseClickedPos[1], igGetIO().MousePos, colors.object_drag_link, 2);
             } else if (igIsMouseReleased(ImGuiMouseButton_Right)) {
                 if (objectIndexUnderMouse(state, origin)) |index| {
                     if (index != dragged_obj_index.?) {
@@ -178,5 +178,5 @@ fn drawTile(state: *ts.AppState, tl: ImVec2, tile: usize) void {
     const uv0 = ImVec2{ .x = rect.x, .y = rect.y };
     const uv1 = ImVec2{ .x = rect.x + rect.width, .y = rect.y + rect.height };
 
-    ImDrawList_AddImage(igGetWindowDrawList(), state.texture.imTextureID(), tl, br, uv0, uv1, 0xffffffff);
+    ogImDrawList_AddImage(igGetWindowDrawList(), state.texture.imTextureID(), tl, br, uv0, uv1, 0xffffffff);
 }

@@ -73,7 +73,7 @@ pub const TileScript = struct {
             self.state.toast_timer -= 1;
 
             igPushStyleColorU32(ImGuiCol_WindowBg, colors.colorRgba(90, 90, 130, 255));
-            igSetNextWindowPos(ogGetWindowCenter(), ImGuiCond_Always, .{ .x = 0.5, .y = 0.5 });
+            ogSetNextWindowPos(ogGetWindowCenter(), ImGuiCond_Always, .{ .x = 0.5, .y = 0.5 });
             if (igBegin("Toast Notification", null, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav)) {
                 igText(&self.state.toast_text[0]);
 

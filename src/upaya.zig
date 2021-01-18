@@ -191,15 +191,15 @@ fn beginDock() void {
     ImGuiViewport_GetWorkPos(&work_pos, vp);
     ImGuiViewport_GetWorkSize(&work_size, vp);
 
-    igSetNextWindowPos(work_pos, ImGuiCond_Always, .{});
-    igSetNextWindowSize(work_size, ImGuiCond_Always);
+    ogSetNextWindowPos(work_pos, ImGuiCond_Always, .{});
+    ogSetNextWindowSize(work_size, ImGuiCond_Always);
     igSetNextWindowViewport(vp.ID);
 
     var window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
     window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-    igPushStyleVarVec2(ImGuiStyleVar_WindowPadding, .{});
+    ogPushStyleVarVec2(ImGuiStyleVar_WindowPadding, .{});
     _ = igBegin("Dockspace", null, window_flags);
     igPopStyleVar(1);
 

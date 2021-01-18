@@ -6,7 +6,7 @@ const TileDefinitions = ts.data.TileDefinitions;
 
 pub fn draw(state: *ts.AppState) void {
     if (state.prefs.windows.tile_definitions) {
-        igSetNextWindowSize(.{ .x = 210, .y = -1 }, ImGuiCond_Always);
+        ogSetNextWindowSize(.{ .x = 210, .y = -1 }, ImGuiCond_Always);
         if (igBegin("Tile Definitions", &state.prefs.windows.tile_definitions, ImGuiWindowFlags_AlwaysAutoResize)) {
             defer igEnd();
 
@@ -34,7 +34,7 @@ pub fn draw(state: *ts.AppState) void {
                     igOpenPopup("tag-tiles");
                 }
 
-                igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+                ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
                 if (igBeginPopup("tag-tiles", ImGuiWindowFlags_None)) {
                     defer igEndPopup();
                     var list = &@field(state.map.tile_definitions, field.name);
@@ -57,7 +57,7 @@ fn drawTileIcon(comptime name: []const u8) void {
     var color = ts.colors.colorRgb(252, 186, 3);
 
     if (std.mem.eql(u8, name, "solid")) {
-        ImDrawList_AddQuadFilled(igGetWindowDrawList(), tl, tr, br, bl, color);
+        ogImDrawList_AddQuadFilled(igGetWindowDrawList(), &tl, &tr, &br, &bl, color);
     } else if (std.mem.eql(u8, name, "slope_down")) {
         tl.y += igGetFrameHeight() / 2;
         ImDrawList_AddTriangleFilled(igGetWindowDrawList(), tl, bl, br, color);
