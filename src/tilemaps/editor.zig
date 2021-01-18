@@ -214,7 +214,7 @@ pub const TilemapEditor = struct {
 
         const rect = self.tileset.uvsForTile(tile);
         const uv0 = ImVec2{ .x = rect.x, .y = rect.y };
-        const uv1 = ImVec2{ .x = rect.x + rect.w, .y = rect.y + rect.h };
+        const uv1 = ImVec2{ .x = rect.x + rect.width, .y = rect.y + rect.height };
 
         ImDrawList_AddImage(igGetWindowDrawList(), self.tileset.tex.imTextureID(), tl, br, uv0, uv1, 0xffffffff);
     }

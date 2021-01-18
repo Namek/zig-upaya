@@ -116,7 +116,7 @@ pub const Tileset = struct {
         }
     }
 
-    pub fn uvsForTile(self: Tileset, tile: usize) upaya.math.Rect {
+    pub fn uvsForTile(self: Tileset, tile: usize) upaya.math.RectF {
         const x = @intToFloat(f32, @mod(tile, self.tiles_per_row));
         const y = @intToFloat(f32, @divTrunc(tile, self.tiles_per_row));
 
@@ -126,8 +126,8 @@ pub const Tileset = struct {
         return .{
             .x = (x * @intToFloat(f32, self.tile_size + self.spacing) + @intToFloat(f32, self.spacing)) * inv_w,
             .y = (y * @intToFloat(f32, self.tile_size + self.spacing) + @intToFloat(f32, self.spacing)) * inv_h,
-            .w = @intToFloat(f32, self.tile_size) * inv_w,
-            .h = @intToFloat(f32, self.tile_size) * inv_h,
+            .width = @intToFloat(f32, self.tile_size) * inv_w,
+            .height = @intToFloat(f32, self.tile_size) * inv_h,
         };
     }
 };
