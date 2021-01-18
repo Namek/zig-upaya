@@ -176,7 +176,7 @@ fn drawTile(state: *ts.AppState, tl: ImVec2, tile: usize) void {
 
     const rect = ts.uvsForTile(state, tile);
     const uv0 = ImVec2{ .x = rect.x, .y = rect.y };
-    const uv1 = ImVec2{ .x = rect.x + rect.w, .y = rect.y + rect.h };
+    const uv1 = ImVec2{ .x = rect.x + rect.width, .y = rect.y + rect.height };
 
     ImDrawList_AddImage(igGetWindowDrawList(), state.texture.imTextureID(), tl, br, uv0, uv1, 0xffffffff);
 }

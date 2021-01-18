@@ -129,13 +129,13 @@ pub fn tileIndexUnderPos(position: ImVec2, rect_size: usize, origin: ImVec2) str
 pub fn tileImageButton(state: *AppState, size: f32, tile: usize) bool {
     const rect = uvsForTile(state, tile);
     const uv0 = ImVec2{ .x = rect.x, .y = rect.y };
-    const uv1 = ImVec2{ .x = rect.x + rect.w, .y = rect.y + rect.h };
+    const uv1 = ImVec2{ .x = rect.x + rect.width, .y = rect.y + rect.height };
 
     const tint = colors.colorRgbaVec4(255, 255, 255, 255);
     return ogImageButton(state.texture.imTextureID(), .{ .x = size, .y = size }, uv0, uv1, 2);
 }
 
-pub fn uvsForTile(state: *AppState, tile: usize) upaya.math.Rect {
+pub fn uvsForTile(state: *AppState, tile: usize) upaya.math.RectF {
     const x = @intToFloat(f32, @mod(tile, state.tilesPerRow()));
     const y = @intToFloat(f32, @divTrunc(tile, state.tilesPerRow()));
 
@@ -145,8 +145,8 @@ pub fn uvsForTile(state: *AppState, tile: usize) upaya.math.Rect {
     return .{
         .x = (x * @intToFloat(f32, state.map.tile_size + state.map.tile_spacing) + @intToFloat(f32, state.map.tile_spacing)) * inv_w,
         .y = (y * @intToFloat(f32, state.map.tile_size + state.map.tile_spacing) + @intToFloat(f32, state.map.tile_spacing)) * inv_h,
-        .w = @intToFloat(f32, state.map.tile_size) * inv_w,
-        .h = @intToFloat(f32, state.map.tile_size) * inv_h,
+        .width = @intToFloat(f32, state.map.tile_size) * inv_w,
+        .height = @intToFloat(f32, state.map.tile_size) * inv_h,
     };
 }
 
