@@ -54,7 +54,7 @@ fn update() void {
 
             if (ogButton("Save to Desktop")) {
                 const path_or_null = upaya.known_folders.getPath(upaya.mem.tmp_allocator, .desktop) catch unreachable;
-                if (path_or_null) |path| atlas.?.save(path, "test");
+                if (path_or_null) |path| atlas.?.save(path, "output");
             }
             igSameLine(0, 10);
 

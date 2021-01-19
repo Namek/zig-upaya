@@ -53,10 +53,10 @@ pub fn draw(state: *editor.AppState) void {
         drawRect(.{ .x = 630, .y = 330 }, 20, Color.green);
 
         drawTex(tex.?, .{});
-        drawTexPortion(tex.?, .{ .x = -100, .y = -100 }, .{ .x = 0, .y = 0, .w = 18, .h = 18 });
-        drawTexPortion(tex.?, .{ .x = -82, .y = -100 }, .{ .x = 18, .y = 0, .w = 18, .h = 18 });
-        drawTexPortion(tex.?, .{ .x = -82, .y = -82 }, .{ .x = 18, .y = 18, .w = 18, .h = 18 });
-        drawTexPortion(tex.?, .{ .x = -100, .y = -82 }, .{ .x = 0, .y = 18, .w = 18, .h = 18 });
+        drawTexPortion(tex.?, .{ .x = -100, .y = -100 }, .{ .x = 0, .y = 0, .width = 18, .height = 18 });
+        drawTexPortion(tex.?, .{ .x = -82, .y = -100 }, .{ .x = 18, .y = 0, .width = 18, .height = 18 });
+        drawTexPortion(tex.?, .{ .x = -82, .y = -82 }, .{ .x = 18, .y = 18, .width = 18, .height = 18 });
+        drawTexPortion(tex.?, .{ .x = -100, .y = -82 }, .{ .x = 0, .y = 18, .width = 18, .height = 18 });
 
         drawText("Text at origin", .{});
     }
@@ -149,18 +149,18 @@ pub fn drawTex(texture: upaya.Texture, pos: ImVec2) void {
     ImDrawList_AddImage(igGetWindowDrawList(), texture.imTextureID(), tl.add(screen_pos), br.add(screen_pos), .{}, .{ .x = 1, .y = 1 }, 0xffffffff);
 }
 
-pub fn drawTexPortion(texture: upaya.Texture, pos: ImVec2, rect: math.Rect) void {
+pub fn drawTexPortion(texture: upaya.Texture, pos: ImVec2, rect: math.RectF) void {
     const tl = trans_mat.transformImVec2(pos);
     var br = pos;
-    br.x += rect.w;
-    br.y += rect.h;
+    br.x += rect.width;
+    br.y += rect.height;
     br = trans_mat.transformImVec2(br);
 
     const inv_w = 1.0 / @intToFloat(f32, texture.width);
     const inv_h = 1.0 / @intToFloat(f32, texture.height);
 
     const uv0 = ImVec2{ .x = rect.x * inv_w, .y = rect.y * inv_h };
-    const uv1 = ImVec2{ .x = (rect.x + rect.w) * inv_w, .y = (rect.y + rect.h) * inv_h };
+    const uv1 = ImVec2{ .x = (rect.x + rect.width) * inv_w, .y = (rect.y + rect.height) * inv_h };
 
     ImDrawList_AddImage(igGetWindowDrawList(), texture.imTextureID(), tl.add(screen_pos), br.add(screen_pos), uv0, uv1, 0xffffffff);
 }

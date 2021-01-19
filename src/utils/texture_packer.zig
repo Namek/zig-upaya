@@ -69,7 +69,7 @@ pub const TexturePacker = struct {
         /// saves the atlas image and a json file with the atlas details. filename should be only the name with no extension.
         pub fn save(self: Atlas, folder: []const u8, filename: []const u8) void {
             const img_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, ".png" }) catch unreachable;
-            const atlas_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, ".json" }) catch unreachable;
+            const atlas_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, ".atlas" }) catch unreachable;
 
             var out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, img_filename }) catch unreachable;
             self.image.save(out_file);
