@@ -16,6 +16,12 @@ var defaultOrigin: c_int = 0;
 var origin_x: c_int = 0;
 var origin_y: c_int = 0;
 
+var selectAll: bool = true;
+var selected: usize = 0;
+
+var zoom: f32 = 1.0;
+var zoomSpeed: f32 = 0.05;
+
 pub fn main() !void {
     upaya.run(.{
         .init = init,
@@ -29,13 +35,34 @@ pub fn main() !void {
     });
 }
 
-fn init() void {}
+fn init() void {
+}
 
 fn shutdown() void {
     if (atlas) |a| a.deinit();
 }
 
 fn update() void {
+
+    var io = igGetIO();
+
+    if (io.MouseWheel > 0 and io.KeyCtrl)
+    {
+        zoom += zoomSpeed;
+    } else if (io.MouseWheel < 0 and io.KeyCtrl)
+    {
+        if (zoom - zoomSpeed > 1)
+            zoom -= zoomSpeed;
+    }
+
+    if (io.KeySuper or io.KeyCtrl)
+    {
+        if (igIsKeyPressed(igGetKeyIndex(ImGuiKey_A), false))
+        {
+            selectAll = true;
+        }
+    }
+
     ogSetNextWindowPos(.{}, ImGuiCond_Always, .{});
     ogSetNextWindowSize(.{
         .x = @intToFloat(f32, upaya.sokol.sapp_width()),
@@ -60,7 +87,7 @@ fn update() void {
 
             igText("Method:");
             igSameLine(0, 5);
-            if (igCheckbox("Tight", &tight)) onFileDropped(folder);
+            if (igCheckbox(if (tight) "Tight" else "Loose", &tight)) onFileDropped(folder);
 
             igSameLine(0, 10);
             igText("Origin:");
@@ -80,30 +107,64 @@ fn update() void {
             if (defaultOrigin == 5) {
                 igSetNextItemWidth(100);
                 igSameLine(0, 5);
-                if (igSliderInt("x", &origin_x, 0, 100, "%.0f")) onFileDropped(folder);
+                if (igInputInt("x", &origin_x, 1, 10, ImGuiTextFlags_None)) onFileDropped(folder);
                 igSetNextItemWidth(100);
                 igSameLine(0, 5);
-                if (igSliderInt("y", &origin_y, 0, 100, "%.0f")) onFileDropped(folder);
+                if (igInputInt("y", &origin_y, 1, 10, ImGuiTextFlags_None)) onFileDropped(folder);
             }
+
 
             defer igEndChild();
             if (ogBeginChildEx("#child", 666, ogGetContentRegionAvail(), true, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar)) {
                 var pos = ogGetCursorScreenPos();
-                const size = ImVec2{ .x = @intToFloat(f32, a.width), .y = @intToFloat(f32, a.height) };
+                pos.x *= zoom;
+                pos.y *= zoom;
+                const size = ImVec2{ .x = @intToFloat(f32, a.width) * zoom, .y = @intToFloat(f32, a.height) * zoom};
 
                 ogAddRectFilled(igGetWindowDrawList(), pos, size, colors.rgbToU32(39, 40, 48));
                 ogAddRect(igGetWindowDrawList(), pos, size, colors.rgbToU32(155, 0, 155), 1);
                 _ = ogInvisibleButton("##rects", size, ImGuiButtonFlags_None);
 
+
+                // first loop draw sprites
                 for (a.sprites) |sprite, i| {
-                    const tl = .{ .x = pos.x + @intToFloat(f32, sprite.source.x), .y = pos.y + @intToFloat(f32, sprite.source.y) };
-                    ogAddRect(igGetWindowDrawList(), tl, .{ .x = @intToFloat(f32, sprite.source.width), .y = @intToFloat(f32, sprite.source.height) }, colors.rgbToU32(0, 255, 0), 1);
+                    const tl = .{ .x = pos.x + @intToFloat(f32, sprite.source.x) * zoom, .y = pos.y + @intToFloat(f32, sprite.source.y) * zoom };
+                    const sprSize = .{ .x = @intToFloat(f32, sprite.source.width) * zoom, .y = @intToFloat(f32, sprite.source.height) * zoom};
 
                     drawChunk(tl, sprite.source.asRectF());
-
-                    const o = .{ .x = tl.x + @intToFloat(f32, sprite.origin.x), .y = tl.y + @intToFloat(f32, sprite.origin.y) };
-                    ogAddRect(igGetWindowDrawList(), o, .{ .x = 1, .y = 1 }, colors.rgbToU32(255, 0, 0), 2);
+                    
                 }
+
+                // second loop draw origins and overlays so its always over all the sprites
+                for (a.sprites) | sprite, i| {
+
+                    const tl = .{ .x = pos.x + @intToFloat(f32, sprite.source.x) * zoom, .y = pos.y + @intToFloat(f32, sprite.source.y) * zoom };
+                    const sprSize = .{ .x = @intToFloat(f32, sprite.source.width) * zoom, .y = @intToFloat(f32, sprite.source.height) * zoom};
+
+                    ogSetCursorScreenPos(tl);
+                    _ = ogInvisibleButton("##test", sprSize, ImGuiButtonFlags_None);
+                    
+                    if (i == selected or selectAll) {
+                        ogAddRect(igGetWindowDrawList(), tl, sprSize, colors.rgbToU32(0, 255, 0), 1);
+
+                        // draw origin
+                        const o = .{ .x = tl.x + @intToFloat(f32, sprite.origin.x) * zoom, .y = tl.y + @intToFloat(f32, sprite.origin.y) * zoom };
+                        ogAddRect(igGetWindowDrawList(), o, .{ .x = 1, .y = 1 }, colors.rgbToU32(255, 0, 0), 2);
+
+                    }
+
+                    if (igIsItemHovered(ImGuiHoveredFlags_RectOnly))
+                    {
+                        ogAddRect(igGetWindowDrawList(), tl, sprSize, colors.rgbaToU32(255, 255, 0, 128), 1);
+
+                        if (igIsMouseClicked(ImGuiMouseButton_Left, false)) {
+                                selectAll = false;
+                                selected = i;                          
+                        }
+                        
+                    }
+
+                } 
             }
         } else {
             var pos = ogGetCursorScreenPos();
@@ -125,8 +186,8 @@ fn update() void {
 
 fn drawChunk(tl: ImVec2, rect: math.RectF) void {
     var br = tl;
-    br.x += rect.width;
-    br.y += rect.height;
+    br.x += rect.width * zoom;
+    br.y += rect.height * zoom;
 
     const inv_w = 1.0 / @intToFloat(f32, atlas.?.width);
     const inv_h = 1.0 / @intToFloat(f32, atlas.?.height);
@@ -135,7 +196,6 @@ fn drawChunk(tl: ImVec2, rect: math.RectF) void {
     const uv1 = ImVec2{ .x = (rect.x + rect.width) * inv_w, .y = (rect.y + rect.height) * inv_h };
 
     ogImDrawList_AddImage(igGetWindowDrawList(), texture.?.imTextureID(), tl, br, uv0, uv1, 0xFFFFFFFF);
-
 }
 
 fn onFileDropped(file: []const u8) void {
