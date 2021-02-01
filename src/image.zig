@@ -73,7 +73,7 @@ pub const Image = struct {
     }
 
     pub fn asTexture(self: Image, filter: Texture.Filter) Texture {
-        return Texture.initWithColorData(self.pixels, @intCast(i32, self.w), @intCast(i32, self.h), filter);
+        return Texture.initWithColorData(self.pixels, @intCast(i32, self.w), @intCast(i32, self.h), filter, .clamp);
     }
 
     pub fn save(self: Image, file: []const u8) void {

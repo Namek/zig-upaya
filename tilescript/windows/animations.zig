@@ -39,13 +39,13 @@ pub fn draw(state: *ts.AppState) void {
                     delete_index = i;
                 }
 
-                igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+                ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
                 if (igBeginPopup("tile-chooser", ImGuiWindowFlags_None)) {
                     animTileSelectorPopup(state, anim, .single);
                     igEndPopup();
                 }
 
-                igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+                ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
                 if (igBeginPopup("animation-tiles", ImGuiWindowFlags_None)) {
                     animTileSelectorPopup(state, anim, .multi);
                     igEndPopup();

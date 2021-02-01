@@ -28,7 +28,7 @@ fn draw(state: *ts.AppState) void {
     const map_size = state.mapSize();
 
     ogAddRectFilled(igGetWindowDrawList(), origin, map_size, colors.colorRgb(0, 0, 0));
-    _ = igInvisibleButton("##output-map-button", map_size);
+    _ = ogInvisibleButton("##output-map-button", map_size, ImGuiButtonFlags_None);
 
     var y: usize = 0;
     while (y < state.map.h) : (y += 1) {
@@ -106,8 +106,7 @@ fn objectIndexUnderMouse(state: *ts.AppState, origin: ImVec2) ?usize {
 fn handleInput(state: *ts.AppState, origin: ImVec2) void {
     // scrolling via drag with alt key down
     if (igIsMouseDragging(ImGuiMouseButton_Left, 0) and (igGetIO().KeyAlt or igGetIO().KeySuper)) {
-        var scroll_delta = ImVec2{};
-        igGetMouseDragDelta(&scroll_delta, 0, 0);
+        var scroll_delta = ogGetMouseDragDelta(0, 0);        
 
         igSetScrollXFloat(igGetScrollX() - scroll_delta.x);
         igSetScrollYFloat(igGetScrollY() - scroll_delta.y);

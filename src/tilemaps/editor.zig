@@ -216,7 +216,7 @@ pub const TilemapEditor = struct {
         const uv0 = ImVec2{ .x = rect.x, .y = rect.y };
         const uv1 = ImVec2{ .x = rect.x + rect.width, .y = rect.y + rect.height };
 
-        ImDrawList_AddImage(igGetWindowDrawList(), self.tileset.tex.imTextureID(), tl, br, uv0, uv1, 0xffffffff);
+        ogImDrawList_AddImage(igGetWindowDrawList(), self.tileset.tex.imTextureID(), tl, br, uv0, uv1, 0xffffffff);
     }
 };
 

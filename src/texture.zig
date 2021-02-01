@@ -8,6 +8,7 @@ pub const Texture = extern struct {
     height: i32 = 0,
 
     pub const Filter = enum { linear, nearest };
+    pub const Wrap = enum { clamp, repeat };
 
     pub fn initOffscreen(width: i32, height: i32, filter: Filter) Texture {
         var img_desc = std.mem.zeroes(sg_image_desc);
@@ -51,13 +52,13 @@ pub const Texture = extern struct {
         return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
     }
 
-    pub fn initWithColorData(pixels: []u32, width: i32, height: i32, filter: Filter) Texture {
+    pub fn initWithColorData(pixels: []u32, width: i32, height: i32, filter: Filter, wrap: Wrap) Texture {
         var img_desc = std.mem.zeroes(sg_image_desc);
         img_desc.width = width;
         img_desc.height = height;
         img_desc.pixel_format = .SG_PIXELFORMAT_RGBA8;
-        img_desc.wrap_u = .SG_WRAP_CLAMP_TO_EDGE;
-        img_desc.wrap_v = .SG_WRAP_CLAMP_TO_EDGE;
+        img_desc.wrap_u = if (wrap == .clamp) .SG_WRAP_CLAMP_TO_EDGE else .SG_WRAP_REPEAT;
+        img_desc.wrap_v = if (wrap == .clamp) .SG_WRAP_CLAMP_TO_EDGE else .SG_WRAP_REPEAT;
         img_desc.min_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
         img_desc.mag_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
         img_desc.content.subimage[0][0].ptr = pixels.ptr;

@@ -121,7 +121,7 @@ pub fn drawRect(center: math.Vec2, size: f32, color: math.Color) void {
     var br = trans_mat.transformImVec2(.{ .x = center.x + half_size, .y = center.y + half_size });
     var bl = trans_mat.transformImVec2(.{ .x = center.x - half_size, .y = center.y + half_size });
 
-    ImDrawList_AddQuadFilled(igGetWindowDrawList(), tl.add(screen_pos), tr.add(screen_pos), br.add(screen_pos), bl.add(screen_pos), color.value);
+    ogImDrawList_AddQuadFilled(igGetWindowDrawList(), &tl.add(screen_pos), &tr.add(screen_pos), &br.add(screen_pos), &bl.add(screen_pos), color.value);
 }
 
 pub fn drawHollowRect(center: math.Vec2, size: math.Vec2, thickness: f32, color: math.Color) void {
@@ -131,7 +131,7 @@ pub fn drawHollowRect(center: math.Vec2, size: math.Vec2, thickness: f32, color:
     var br = trans_mat.transformImVec2(.{ .x = center.x + half_size.x, .y = center.y + half_size.y });
     var bl = trans_mat.transformImVec2(.{ .x = center.x - half_size.x, .y = center.y + half_size.y });
 
-    ImDrawList_AddQuad(igGetWindowDrawList(), tl.add(screen_pos), tr.add(screen_pos), br.add(screen_pos), bl.add(screen_pos), color.value, thickness);
+    ogImDrawList_AddQuad(igGetWindowDrawList(), &tl.add(screen_pos), &tr.add(screen_pos), &br.add(screen_pos), &bl.add(screen_pos), color.value, thickness);
 }
 
 pub fn drawText(text: [*c]const u8, top_left: ImVec2) void {
@@ -146,7 +146,7 @@ pub fn drawTex(texture: upaya.Texture, pos: ImVec2) void {
     br.y += @intToFloat(f32, texture.height);
     br = trans_mat.transformImVec2(br);
 
-    ImDrawList_AddImage(igGetWindowDrawList(), texture.imTextureID(), tl.add(screen_pos), br.add(screen_pos), .{}, .{ .x = 1, .y = 1 }, 0xffffffff);
+    ogImDrawList_AddImage(igGetWindowDrawList(), texture.imTextureID(), tl.add(screen_pos), br.add(screen_pos), .{}, .{ .x = 1, .y = 1 }, 0xffffffff);
 }
 
 pub fn drawTexPortion(texture: upaya.Texture, pos: ImVec2, rect: math.RectF) void {
@@ -162,5 +162,5 @@ pub fn drawTexPortion(texture: upaya.Texture, pos: ImVec2, rect: math.RectF) voi
     const uv0 = ImVec2{ .x = rect.x * inv_w, .y = rect.y * inv_h };
     const uv1 = ImVec2{ .x = (rect.x + rect.width) * inv_w, .y = (rect.y + rect.height) * inv_h };
 
-    ImDrawList_AddImage(igGetWindowDrawList(), texture.imTextureID(), tl.add(screen_pos), br.add(screen_pos), uv0, uv1, 0xffffffff);
+    ogImDrawList_AddImage(igGetWindowDrawList(), texture.imTextureID(), tl.add(screen_pos), br.add(screen_pos), uv0, uv1, 0xffffffff);
 }

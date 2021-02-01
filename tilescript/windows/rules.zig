@@ -69,13 +69,13 @@ fn drawRuleSetTabButtons(state: *ts.AppState, cursor: ImVec2, open_repeat_popup:
     var cur = cursor;
     cur.x += igGetWindowContentRegionWidth() - 50;
     cur.y -= 1;
-    igSetCursorPos(cur);
+    ogSetCursorPos(cur);
 
     if (igButton(icons.sliders_h, .{})) {
         open_repeat_popup.* = true;
     }
     igSameLine(0, 5);
-    if (igButton(icons.plus, .{})) {
+    if (ogButton(icons.plus)) {
         state.map.addPreRuleSet();
     }
     ogUnformattedTooltip(20, "Adds a new RuleSet, which is a group of rules that transform the input map before regular rules are run");
@@ -202,11 +202,11 @@ fn drawRulesTab(state: *ts.AppState) void {
                 std.mem.copy(u8, &new_rule_label_buf, state.map.getGroupName(group));
             }
 
-            igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+            ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
             if (igBeginPopup("##rename-group", ImGuiWindowFlags_None)) {
                 _ = ogInputText("##name", &new_rule_label_buf, new_rule_label_buf.len);
 
-                if (igButton("Rename Group", .{ .x = -1, .y = 0 })) {
+                if (ogButtonEx("Rename Group", .{ .x = -1, .y = 0 })) {
                     igCloseCurrentPopup();
                     const label_sentinel_index = std.mem.indexOfScalar(u8, &new_rule_label_buf, 0).?;
                     state.map.renameGroup(group, new_rule_label_buf[0..label_sentinel_index]);
@@ -277,13 +277,13 @@ fn drawRulesTab(state: *ts.AppState) void {
         nine_slice_selected = null;
     }
 
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopup("nine-slice-wizard", ImGuiWindowFlags_None)) {
         nineSlicePopup(state, 3);
         igEndPopup();
     }
 
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopup("inner-four-wizard", ImGuiWindowFlags_None)) {
         nineSlicePopup(state, 2);
         igEndPopup();
@@ -339,7 +339,7 @@ fn drawPreRulesTabs(state: *ts.AppState) void {
         }
     } // end pre_rules loop
 
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopupModal("Delete RuleSet", null, ImGuiWindowFlags_AlwaysAutoResize)) {
         deletePreRuleSetPopup(state);
         igEndPopup();
@@ -358,7 +358,7 @@ fn deletePreRuleSetPopup(state: *ts.AppState) void {
 
     igPushStyleColorU32(ImGuiCol_Button, ts.colors.colorRgb(180, 25, 35));
     igPushStyleColorU32(ImGuiCol_ButtonHovered, ts.colors.colorRgb(240, 20, 30));
-    if (igButton("Delete", ImVec2{ .x = -1, .y = 0 })) {
+    if (ogButtonEx("Delete", ImVec2{ .x = -1, .y = 0 })) {
         const removed_rules_page = state.map.pre_rulesets.orderedRemove(ruleset_delete_index);
         removed_rules_page.deinit();
         state.map_data_dirty = true;
@@ -387,11 +387,11 @@ fn groupDropTarget(group: u8, index: usize) void {
         var cursor = ogGetCursorPos();
         const old_pos = cursor;
         cursor.y -= 5;
-        igSetCursorPos(cursor);
+        ogSetCursorPos(cursor);
         igPushStyleColorU32(ImGuiCol_Button, colors.colorRgb(0, 255, 0));
         _ = igInvisibleButton("", .{ .x = -1, .y = 8 });
         igPopStyleColor(1);
-        igSetCursorPos(old_pos);
+        ogSetCursorPos(old_pos);
     }
 
     if (igBeginDragDropTarget()) {
@@ -412,7 +412,7 @@ fn groupDragDrop(group: u8, index: usize) void {
         drag_drop_state.from = index;
         drag_drop_state.source = .{ .group = group };
         _ = igSetDragDropPayload("RULESET_DRAG", null, 0, ImGuiCond_Once);
-        _ = igButton("group move", .{ .x = ogGetContentRegionAvail().x, .y = 20 });
+        _ = ogButtonEx("group move", .{ .x = ogGetContentRegionAvail().x, .y = 20 });
         igEndDragDropSource();
     }
 }
@@ -431,7 +431,7 @@ fn rulesDragDrop(index: usize, rule: *Rule, drop_only: bool, is_pre_rule: bool) 
             _ = igSetDragDropPayload("RULESET_DRAG", null, 0, ImGuiCond_Once);
             drag_drop_state.from = index;
             drag_drop_state.source = .{ .rule = rule };
-            _ = igButton(&rule.name, .{ .x = ogGetContentRegionAvail().x, .y = 20 });
+            _ = ogButtonEx(&rule.name, .{ .x = ogGetContentRegionAvail().x, .y = 20 });
             igEndDragDropSource();
         }
     }
@@ -440,11 +440,11 @@ fn rulesDragDrop(index: usize, rule: *Rule, drop_only: bool, is_pre_rule: bool) 
     if (drag_drop_state.active and !(drag_drop_state.isGroup() and rule.group > 0)) {
         const old_pos = ogGetCursorPos();
         cursor.y -= 5;
-        igSetCursorPos(cursor);
+        ogSetCursorPos(cursor);
         igPushStyleColorU32(ImGuiCol_Button, colors.colorRgb(255, 0, 0));
         _ = igInvisibleButton("", .{ .x = -1, .y = 8 });
         igPopStyleColor(1);
-        igSetCursorPos(old_pos);
+        ogSetCursorPos(old_pos);
 
         if (igBeginDragDropTarget()) {
             if (igAcceptDragDropPayload("RULESET_DRAG", ImGuiDragDropFlags_None)) |payload| {
@@ -479,7 +479,7 @@ fn drawRule(state: *ts.AppState, ruleset: *RuleSet, rule: *Rule, index: usize, i
             std.mem.set(u8, &new_rule_label_buf, 0);
         }
 
-        igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+        ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
         if (igBeginPopup("##group-name", ImGuiWindowFlags_None)) {
             defer igEndPopup();
 
@@ -492,7 +492,7 @@ fn drawRule(state: *ts.AppState, ruleset: *RuleSet, rule: *Rule, index: usize, i
                 igPushStyleVarFloat(ImGuiStyleVar_Alpha, 0.5);
             }
 
-            if (igButton("Add to New Group", .{ .x = -1, .y = 0 })) {
+            if (ogButtonEx("Add to New Group", .{ .x = -1, .y = 0 })) {
                 igCloseCurrentPopup();
 
                 // get the next available group
@@ -546,17 +546,17 @@ fn drawRule(state: *ts.AppState, ruleset: *RuleSet, rule: *Rule, index: usize, i
     }
 
     // display the popup a bit to the left to center it under the mouse
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopup("##pattern_popup", ImGuiWindowFlags_None)) {
         patternPopup(state, rule);
 
         var size = ogGetContentRegionAvail();
-        if (igButton("Clear", ImVec2{ .x = (size.x - 4) / 1.7 })) {
+        if (ogButtonEx("Clear", ImVec2{ .x = (size.x - 4) / 1.7 })) {
             rule.clearPatternData();
         }
         igSameLine(0, 4);
 
-        if (igButton("...", .{ .x = -1, .y = 0 })) {
+        if (ogButtonEx("...", .{ .x = -1, .y = 0 })) {
             igOpenPopup("rules_hamburger");
         }
 
@@ -574,7 +574,7 @@ fn drawRule(state: *ts.AppState, ruleset: *RuleSet, rule: *Rule, index: usize, i
         igEndPopup();
     }
 
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopup("result_popup", ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)) {
         resultPopup(state, rule, is_pre_rule);
         igEndPopup();
@@ -597,8 +597,9 @@ fn patternPopup(state: *ts.AppState, rule: *Rule) void {
     const thickness: f32 = 2;
 
     var pos = ImVec2{};
-    igGetCursorScreenPos(&pos);
-    _ = igInvisibleButton("##pattern_button", ImVec2{ .x = canvas_size, .y = canvas_size });
+    pos = ogGetCursorScreenPos();
+
+    _ = ogInvisibleButton("##pattern_button", ImVec2{ .x = canvas_size, .y = canvas_size }, ImGuiButtonFlags_None);
     const mouse_pos = igGetIO().MousePos;
     const hovered = igIsItemHovered(ImGuiHoveredFlags_None);
 
@@ -660,7 +661,7 @@ fn patternPopup(state: *ts.AppState, rule: *Rule) void {
 }
 
 fn rulesHamburgerPopup(state: *ts.AppState, rule: *Rule) void {
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopup("rules_hamburger", ImGuiWindowFlags_None)) {
         defer igEndPopup();
         state.map_data_dirty = true;
@@ -700,22 +701,22 @@ fn rulesHamburgerPopup(state: *ts.AppState, rule: *Rule) void {
 }
 
 fn floodFillPopup(state: *ts.AppState, ruleset: *RuleSet) void {
-    igSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
+    ogSetNextWindowPos(igGetIO().MousePos, ImGuiCond_Appearing, .{ .x = 0.5 });
     if (igBeginPopup("flood-fill", ImGuiWindowFlags_None)) {
         defer igEndPopup();
 
         igText("Directions:");
         igSameLine(0, 10);
-        _ = igSelectableBoolPtr(icons.arrow_left, &fill_dirs.left, ImGuiSelectableFlags_DontClosePopups, .{ .x = 12, .y = 12 });
+        fill_dirs.left = ogSelectableBool(icons.arrow_left, fill_dirs.left, ImGuiSelectableFlags_DontClosePopups, .{.x = 12, .y = 12});
 
         igSameLine(0, 7);
-        _ = igSelectableBoolPtr(icons.arrow_down, &fill_dirs.down, ImGuiSelectableFlags_DontClosePopups, .{ .x = 12, .y = 12 });
+        fill_dirs.down = ogSelectableBool(icons.arrow_down, fill_dirs.down, ImGuiSelectableFlags_DontClosePopups, .{ .x = 12, .y = 12 });
 
         igSameLine(0, 7);
-        _ = igSelectableBoolPtr(icons.arrow_right, &fill_dirs.right, ImGuiSelectableFlags_DontClosePopups, .{ .x = 12, .y = 12 });
+        fill_dirs.right = ogSelectableBool(icons.arrow_right, fill_dirs.right, ImGuiSelectableFlags_DontClosePopups, .{ .x = 12, .y = 12 });
 
         igSameLine(0, 7);
-        _ = igSelectableBoolPtr(icons.arrow_up, &fill_dirs.up, ImGuiSelectableFlags_DontClosePopups, .{ .x = 12, .y = 12 });
+        fill_dirs.up = ogSelectableBool(icons.arrow_up, fill_dirs.up, ImGuiSelectableFlags_DontClosePopups, .{ .x = 12, .y = 12 });
 
         igSpacing();
         var size = ogGetContentRegionAvail();
