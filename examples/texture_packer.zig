@@ -23,7 +23,12 @@ var selectAll: bool = true;
 var selected: usize = 0;
 
 var zoom: f32 = 1.0;
+var snappedZoom: f32 = 1.0;
+var snapZoom: bool = true;
 var zoomSpeed: f32 = 0.05;
+
+const bgColor = 0xFF362C2A;
+const popBgColor = 0x77362C2A;
 
 const checkerColor1 = 0xFF888888;
 const checkerColor2 = 0xFFAAAAAA;
@@ -59,20 +64,21 @@ fn shutdown() void {
     if (atlas) |a| a.deinit();
     selection.deinit();
     origins.deinit();
-    //if (checkerTexture) |t| t.deinit();
 }
 
 fn update() void {
     drawSelectionPopup();
 
     var io = igGetIO();
-
     // set zoom
     if (io.MouseWheel > 0 and io.KeyCtrl) {
         zoom += zoomSpeed;
+        snappedZoom = @intToFloat(f32, @floatToInt(i32, zoom));
     } else if (io.MouseWheel < 0 and io.KeyCtrl) {
-        if (zoom - zoomSpeed > 1)
+        if (zoom - zoomSpeed > 0)
             zoom -= zoomSpeed;
+
+        snappedZoom = @intToFloat(f32, @floatToInt(i32, zoom));
     }
 
     ogSetNextWindowPos(.{}, ImGuiCond_Always, .{});
@@ -82,7 +88,7 @@ fn update() void {
     }, ImGuiCond_Always);
 
     if (igBegin("Main Window", null, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize)) {
-        ogAddRectFilled(igGetWindowDrawList(), .{}, ogGetWindowSize(), colors.rgbToU32(39, 40, 48));
+        ogAddRectFilled(igGetWindowDrawList(), .{}, ogGetWindowSize(), bgColor);
 
         if (atlas) |a| {
 
@@ -115,10 +121,20 @@ fn update() void {
             igSameLine(0, 5);
             if (igCheckbox(if (tight) "Tight" else "Loose", &tight)) onFileDropped(folder);
 
+            igSameLine(0, 10);
+            igText("Zoom:");
+            igSameLine(0, 5);
+            igSetNextItemWidth(100);
+            _ = igInputFloat("", if (snapZoom) &snappedZoom else &zoom, if (snapZoom) 1.0 else 0.02, 1.0, "%.1f",ImGuiInputTextFlags_None);
+            zoom = if (zoom <= 0) 0.2 else zoom;
+            snappedZoom = if (snappedZoom < 1) 1 else snappedZoom;
+            igSameLine(0, 5);
+            _ = igCheckbox(if (snapZoom) "Snap" else "Smooth", &snapZoom);
+
             defer igEndChild();
             if (ogBeginChildEx("#child", 666, ogGetContentRegionAvail(), true, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground)) {
                 var pos = ogGetCursorScreenPos();
-                const size = ImVec2{ .x = @intToFloat(f32, a.width) * zoom, .y = @intToFloat(f32, a.height) * zoom };
+                const size = ImVec2{ .x = @intToFloat(f32, a.width) * if (snapZoom) snappedZoom else zoom, .y = @intToFloat(f32, a.height) * if (snapZoom) snappedZoom else zoom };
 
                 var availableSize = ogGetWindowSize();
                 var centered_x = ((availableSize.x - size.x) / 2);
@@ -135,8 +151,8 @@ fn update() void {
 
                 // first loop draw sprites
                 for (a.sprites) |sprite, i| {
-                    const tl = .{ .x = pos.x + @intToFloat(f32, sprite.source.x) * zoom, .y = pos.y + @intToFloat(f32, sprite.source.y) * zoom };
-                    const sprSize = .{ .x = @intToFloat(f32, sprite.source.width) * zoom, .y = @intToFloat(f32, sprite.source.height) * zoom };
+                    const tl = .{ .x = pos.x + @intToFloat(f32, sprite.source.x) * if (snapZoom) snappedZoom else zoom, .y = pos.y + @intToFloat(f32, sprite.source.y) * if (snapZoom) snappedZoom else zoom };
+                    const sprSize = .{ .x = @intToFloat(f32, sprite.source.width) * if (snapZoom) snappedZoom else zoom, .y = @intToFloat(f32, sprite.source.height) * if (snapZoom) snappedZoom else zoom };
 
                     drawChunk(tl, sprite.source.asRectF());
 
@@ -146,7 +162,7 @@ fn update() void {
                     if (igIsItemHovered(ImGuiHoveredFlags_RectOnly)) {
                         ogAddRect(igGetWindowDrawList(), tl, sprSize, colors.rgbaToU32(255, 255, 0, 128), 1);
 
-                        if (igIsMouseClicked(ImGuiMouseButton_Left, false)) {
+                        if (igIsMouseReleased(ImGuiMouseButton_Left)) {
                             if (io.KeyCtrl) {
                                 var contains = false;
                                 for (selection.items) |s, ii| {
@@ -168,21 +184,24 @@ fn update() void {
                 }
 
                 for (selection.items) |select, i| {
-                    const tl = .{ .x = pos.x + @intToFloat(f32, a.sprites[select].source.x) * zoom, .y = pos.y + @intToFloat(f32, a.sprites[select].source.y) * zoom };
-                    const sprSize = .{ .x = @intToFloat(f32, a.sprites[select].source.width) * zoom, .y = @intToFloat(f32, a.sprites[select].source.height) * zoom };
+                    const tl = .{ .x = pos.x + @intToFloat(f32, a.sprites[select].source.x) * if (snapZoom) snappedZoom else zoom, .y = pos.y + @intToFloat(f32, a.sprites[select].source.y) * if (snapZoom) snappedZoom else zoom };
+                    const sprSize = .{ .x = @intToFloat(f32, a.sprites[select].source.width) * if (snapZoom) snappedZoom else zoom, .y = @intToFloat(f32, a.sprites[select].source.height) * if (snapZoom) snappedZoom else zoom };
 
                     ogAddRect(igGetWindowDrawList(), tl, sprSize, colors.rgbToU32(0, 255, 0), 1);
+                }
 
+                for (selection.items) |select, i| {
+                    const tl = .{ .x = pos.x + @intToFloat(f32, a.sprites[select].source.x) * if (snapZoom) snappedZoom else zoom, .y = pos.y + @intToFloat(f32, a.sprites[select].source.y) * if (snapZoom) snappedZoom else zoom };
                     // draw origin
-                    const o = .{ .x = tl.x + @intToFloat(f32, origins.items[select].x) * zoom, .y = tl.y + @intToFloat(f32, origins.items[select].y) * zoom };
+                    const o = .{ .x = tl.x + @intToFloat(f32, origins.items[select].x) * if (snapZoom) snappedZoom else zoom, .y = tl.y + @intToFloat(f32, origins.items[select].y) * if (snapZoom) snappedZoom else zoom };
                     ogAddRect(igGetWindowDrawList(), o, .{ .x = 1, .y = 1 }, colors.rgbToU32(255, 0, 0), 2);
                 }
             }
         } else {
             var pos = ogGetCursorScreenPos();
             const size = ogGetContentRegionAvail();
-            ogAddRectFilled(igGetWindowDrawList(), pos, size, colors.rgbToU32(39, 40, 48));
-            ogAddRect(igGetWindowDrawList(), pos, size, colors.rgbToU32(39, 40, 48), 10);
+            ogAddRectFilled(igGetWindowDrawList(), pos, size, bgColor);
+            //ogAddRect(igGetWindowDrawList(), pos, size, colors.rgbToU32(39, 40, 48), 10);
 
             var text_size: ImVec2 = undefined;
             igCalcTextSize(&text_size, "Drag/drop a folder", null, false, 1024);
@@ -200,8 +219,22 @@ fn drawSelectionPopup() void {
     if (selection.items.len == 0)
         return;
 
-    if (igBegin("Selection", null, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse)) {
+    if (igBegin("Selection", null, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground)) {
         defer igEnd();
+
+        var pos = ogGetWindowPos();
+        var size = ogGetWindowSize();
+
+        ogAddRectFilled(igGetWindowDrawList(), pos, size, popBgColor);
+
+        if (selection.items.len == 1) {
+            if (atlas) |a| {
+                igText(@ptrCast([*c]const u8, a.sprites[selection.items[0]].name));
+            }
+        } else if (selection.items.len > 1) {
+            var count = std.fmt.allocPrint(upaya.mem.allocator, "({})", .{selection.items.len}) catch unreachable;
+            igText(@ptrCast([*c]const u8, count));
+        }
 
         igText("Origin:");
         if (igRadioButtonIntPtr("TopLeft", &defaultOrigin, 0)) onFileDropped(folder);
@@ -222,8 +255,8 @@ fn drawSelectionPopup() void {
 
 fn drawChunk(tl: ImVec2, rect: math.RectF) void {
     var br = tl;
-    br.x += rect.width * zoom;
-    br.y += rect.height * zoom;
+    br.x += rect.width * if (snapZoom) snappedZoom else zoom;
+    br.y += rect.height * if (snapZoom) snappedZoom else zoom;
 
     const inv_w = 1.0 / @intToFloat(f32, atlas.?.width);
     const inv_h = 1.0 / @intToFloat(f32, atlas.?.height);
