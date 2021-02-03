@@ -100,12 +100,15 @@ pub const TexturePacker = struct {
     };
 
     pub const AtlasConfig = struct {
-        method: PackingMethod = .Full, default_origin: DefaultOrigin = .TL, custom_origin: math.Point = .{ .x = 0, .y = 0 }
+        method: PackingMethod = .Full, default_origin: DefaultOrigin = .TL, custom_origin: math.Point = .{ .x = 0, .y = 0 },
     };
 
     pub fn pack(folder: []const u8, config: AtlasConfig) !Atlas {
         const pngs = upaya.fs.getAllFilesOfType(upaya.mem.allocator, folder, ".png", true);
+
         var origins = std.ArrayList(math.Point).init(upaya.mem.allocator);
+
+        
         const frames = getFramesForPngs(pngs, &origins, config);
 
         if (runRectPacker(frames)) |atlas_size| {
@@ -124,14 +127,15 @@ pub const TexturePacker = struct {
             var tex = upaya.Image.initFromFile(png);
             defer tex.deinit();
 
-            var origin: math.Point = switch (config.default_origin) {
-                .TL => .{ .x = 0, .y = 0 },
-                .TR => .{ .x = @intCast(i32, tex.w), .y = 0 },
-                .BL => .{ .x = 0, .y = @intCast(i32, tex.h) },
-                .BR => .{ .x = @intCast(i32, tex.w), .y = @intCast(i32, tex.h) },
-                .Center => .{ .x = @divExact(@intCast(i32, tex.w), 2), .y = @divExact(@intCast(i32, tex.h), 2) },
-                .Custom => config.custom_origin,
-            };
+            var origin: math.Point = .{ .x = 0, .y = 0 };
+            // var origin: math.Point = switch (config.default_origin) {
+            //     .TL => .{ .x = 0, .y = 0 },
+            //     .TR => .{ .x = @intCast(i32, tex.w), .y = 0 },
+            //     .BL => .{ .x = 0, .y = @intCast(i32, tex.h) },
+            //     .BR => .{ .x = @intCast(i32, tex.w), .y = @intCast(i32, tex.h) },
+            //     .Center => .{ .x = @divExact(@intCast(i32, tex.w), 2), .y = @divExact(@intCast(i32, tex.h), 2) },
+            //     .Custom => config.custom_origin,
+            // };
 
             if (config.method == .Tight) {
                 var offset = tex.crop();
