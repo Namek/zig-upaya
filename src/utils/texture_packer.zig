@@ -95,30 +95,21 @@ pub const TexturePacker = struct {
         Tight,
     };
 
-    pub const DefaultOrigin = enum {
-        TL, TR, BL, BR, Center, Custom
-    };
-
-    pub const AtlasConfig = struct {
-        method: PackingMethod = .Full, default_origin: DefaultOrigin = .TL, custom_origin: math.Point = .{ .x = 0, .y = 0 },
-    };
-
-    pub fn pack(folder: []const u8, config: AtlasConfig) !Atlas {
+    pub fn pack(folder: []const u8, method: PackingMethod) !Atlas {
         const pngs = upaya.fs.getAllFilesOfType(upaya.mem.allocator, folder, ".png", true);
 
         var origins = std.ArrayList(math.Point).init(upaya.mem.allocator);
 
-        
-        const frames = getFramesForPngs(pngs, &origins, config);
+        const frames = getFramesForPngs(pngs, &origins, method);
 
         if (runRectPacker(frames)) |atlas_size| {
-            return Atlas.init(frames, origins.items, pngs, atlas_size, config.method);
+            return Atlas.init(frames, origins.items, pngs, atlas_size, method);
         } else {
             return error.NotEnoughRoom;
         }
     }
 
-    fn getFramesForPngs(pngs: [][]const u8, origins: *std.ArrayList(math.Point), config: AtlasConfig) []stb.stbrp_rect {
+    fn getFramesForPngs(pngs: [][]const u8, origins: *std.ArrayList(math.Point), method: PackingMethod) []stb.stbrp_rect {
         var frames = std.ArrayList(stb.stbrp_rect).init(upaya.mem.allocator);
         for (pngs) |png, i| {
             var w: c_int = undefined;
@@ -127,23 +118,14 @@ pub const TexturePacker = struct {
             var tex = upaya.Image.initFromFile(png);
             defer tex.deinit();
 
-            var origin: math.Point = .{ .x = 0, .y = 0 };
-            // var origin: math.Point = switch (config.default_origin) {
-            //     .TL => .{ .x = 0, .y = 0 },
-            //     .TR => .{ .x = @intCast(i32, tex.w), .y = 0 },
-            //     .BL => .{ .x = 0, .y = @intCast(i32, tex.h) },
-            //     .BR => .{ .x = @intCast(i32, tex.w), .y = @intCast(i32, tex.h) },
-            //     .Center => .{ .x = @divExact(@intCast(i32, tex.w), 2), .y = @divExact(@intCast(i32, tex.h), 2) },
-            //     .Custom => config.custom_origin,
-            // };
 
-            if (config.method == .Tight) {
+            if (method == .Tight) {
                 var offset = tex.crop();
-                origins.*.append(.{ .x = origin.x - offset.x, .y = origin.y - offset.y }) catch unreachable;
+                origins.*.append(.{ .x = 0 - offset.x, .y = 0 - offset.y }) catch unreachable;
             }
 
-            if (config.method == .Full) {
-                origins.*.append(origin) catch unreachable;
+            if (method == .Full) {
+                origins.*.append(.{.x = 0, .y = 0}) catch unreachable;
             }
 
             frames.append(.{

@@ -285,7 +285,8 @@ fn drawSelectionPopup() void {
             var pos = ogGetWindowPos();
             var size = ogGetWindowSize();
             //background
-            ogAddRectFilled(igGetWindowDrawList(), pos, size, popBgColor);
+            ogAddRectFilled(igGetWindowDrawList(), pos, size
+            , popBgColor);
 
             var selectedOrigin: c_int = 0;
             var currentSprite: upaya.TexturePacker.Sprite = undefined;
@@ -439,8 +440,8 @@ fn onFileDropped(file: []const u8) void {
     if (fs.cwd().openDir(file, .{ .iterate = true })) |dir| {
         folder = file;
     
-        tightAtlas = upaya.TexturePacker.pack(file, .{ .method = .Tight, .default_origin = .TL }) catch unreachable;
-        looseAtlas = upaya.TexturePacker.pack(file, .{ .method = .Full, .default_origin = .TL }) catch unreachable;
+        tightAtlas = upaya.TexturePacker.pack(file, .Tight) catch unreachable;
+        looseAtlas = upaya.TexturePacker.pack(file, .Full) catch unreachable;
 
         if (tightTexture) |tex| tex.deinit();
         if (looseTexture) |tex| tex.deinit();
