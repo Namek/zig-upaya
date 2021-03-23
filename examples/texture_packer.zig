@@ -13,6 +13,7 @@ var looseTexture: ?upaya.Texture = null;
 var tightTexture: ?upaya.Texture = null;
 
 var atlas: ?upaya.TexturePacker.Atlas = null;
+var atlasName: []const u8 = "output";
 
 var folder: []const u8 = undefined;
 
@@ -128,7 +129,7 @@ fn update() void {
 
             if (ogButton("Save to Desktop")) {
                 const path_or_null = upaya.known_folders.getPath(upaya.mem.tmp_allocator, .desktop) catch unreachable;
-                if (path_or_null) |path| atlas.?.save(path, "output");
+                if (path_or_null) |path| atlas.?.save(path, atlasName);
             }
 
             igSameLine(0, 20);
@@ -458,6 +459,6 @@ fn onFileDropped(file: []const u8) void {
             offsets.items[i] = sprite.origin;
         }
     } else |err| {
-        std.debug.print("Dropped a non-directory: {}, err: {}\n", .{ file, err });
+        std.debug.print("Dropped a non-directory: {s}, err: {}\n", .{ file, err });
     }
 }

@@ -6,7 +6,6 @@ const math = upaya.math;
 const stb = upaya.stb;
 
 pub const TexturePacker = struct {
-
     pub const Sprite = struct {
         name: []const u8,
         source: math.Rect,
@@ -18,6 +17,7 @@ pub const TexturePacker = struct {
         width: u16,
         height: u16,
         image: upaya.Image = undefined,
+        heightmap: upaya.Image = undefined,
 
         pub fn init(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, size: Size, method: PackingMethod) Atlas {
             std.debug.assert(frames.len == files.len);
@@ -44,17 +44,50 @@ pub const TexturePacker = struct {
             var image = upaya.Image.init(size.width, size.height);
             image.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
 
+            var heightmap = upaya.Image.init(size.width, size.height);
+            heightmap.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
+
             for (files) |file, i| {
                 var sub_image = upaya.Image.initFromFile(file);
                 defer sub_image.deinit();
                 if (method == .Tight) {
                     _ = sub_image.crop();
                 }
-
                 image.blit(sub_image, frames[i].x, frames[i].y);
+
+                var height_sub_image = upaya.Image.initFromFile(file);
+                defer height_sub_image.deinit();
+
+                var r: u8 = 1;
+                var row: i32 = @intCast(i32, height_sub_image.h);
+                var containsColor: bool = false;
+                var j: usize = height_sub_image.pixels.len - 1;
+                while (j > 0) : (j -= 1) {
+                    var temp_row = @intCast(i32, @divTrunc(j, height_sub_image.w));
+
+                    if (temp_row != row and r < 255) {
+                        
+                            r += 1;
+                            row = temp_row;
+                    
+                    }
+
+                    if (height_sub_image.pixels[j] & 0xFF000000 != 0) {
+                        var color = upaya.math.Color.fromBytes(r, r, r, 255);
+                        height_sub_image.pixels[j] = color.value;
+                        containsColor = true;
+                    }
+                }
+
+                if (method == .Tight) {
+                    _ = height_sub_image.crop();
+                }
+
+                heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
             }
 
             res_atlas.image = image;
+            res_atlas.heightmap = heightmap;
             return res_atlas;
         }
 
@@ -70,9 +103,13 @@ pub const TexturePacker = struct {
         pub fn save(self: Atlas, folder: []const u8, filename: []const u8) void {
             const img_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, ".png" }) catch unreachable;
             const atlas_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, ".atlas" }) catch unreachable;
+            const heightmap_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, "_h.png" }) catch unreachable;
 
             var out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, img_filename }) catch unreachable;
             self.image.save(out_file);
+
+            out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, heightmap_filename }) catch unreachable;
+            self.heightmap.save(out_file);
 
             out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, atlas_filename }) catch unreachable;
             var handle = std.fs.cwd().createFile(out_file, .{}) catch unreachable;
@@ -118,14 +155,13 @@ pub const TexturePacker = struct {
             var tex = upaya.Image.initFromFile(png);
             defer tex.deinit();
 
-
             if (method == .Tight) {
                 var offset = tex.crop();
                 origins.*.append(.{ .x = 0 - offset.x, .y = 0 - offset.y }) catch unreachable;
             }
 
             if (method == .Full) {
-                origins.*.append(.{.x = 0, .y = 0}) catch unreachable;
+                origins.*.append(.{ .x = 0, .y = 0 }) catch unreachable;
             }
 
             frames.append(.{
