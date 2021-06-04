@@ -118,12 +118,13 @@ pub const Image = struct {
             top += 1;
         }
 
-        //y -= padding;
-        top -= padding;
-        //reset h to new h
-        h = self.h - y;
-        // pad y
-        y -= padding;
+        if (top != 0) {
+            top -= padding;
+            //reset h to new h
+            h = self.h - y;
+            // pad y
+            y -= padding;
+        }
 
         //find bottom pixel
         var tempY = self.h - 1;
@@ -138,10 +139,13 @@ pub const Image = struct {
             tempY -= 1;
             bottom -= 1;
         }
-        
+
+        if (bottom != self.h) {
+            h += padding;
+        }
 
         // create a new image and copy over the vertically cropped pixels
-        var verticalCroppedImage = Image.init(w, h + padding);
+        var verticalCroppedImage = Image.init(w, h);
 
         std.mem.copy(u32, verticalCroppedImage.pixels, self.pixels[top * w .. bottom * w]);
 
@@ -169,8 +173,12 @@ pub const Image = struct {
             tempY += 1;
         }
 
-        // pad the left pixel
+        if (leftPixel != 0){
+            // pad the left pixel
         leftPixel -= padding;
+
+        }
+        
 
         // x offset is now the leftmost pixel index
         x = leftPixel;
@@ -199,7 +207,11 @@ pub const Image = struct {
         }
 
         // pad right pixel
-        rightPixel += padding;
+        if ( rightPixel != w){
+            rightPixel += padding;
+
+        }
+        
 
         // create final image
         h = verticalCroppedImage.h;

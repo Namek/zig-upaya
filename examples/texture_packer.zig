@@ -151,9 +151,7 @@ fn update() void {
                             atlas.?.sprites[i].origin.x = looseAtlas.?.sprites[i].origin.x;
                             atlas.?.sprites[i].origin.y = looseAtlas.?.sprites[i].origin.y;
                         }
-
                     }
-
                 } else {
                     atlas = looseAtlas;
                 }
@@ -286,8 +284,7 @@ fn drawSelectionPopup() void {
             var pos = ogGetWindowPos();
             var size = ogGetWindowSize();
             //background
-            ogAddRectFilled(igGetWindowDrawList(), pos, size
-            , popBgColor);
+            ogAddRectFilled(igGetWindowDrawList(), pos, size, popBgColor);
 
             var selectedOrigin: c_int = 0;
             var currentSprite: upaya.TexturePacker.Sprite = undefined;
@@ -440,7 +437,7 @@ fn drawChunk(tl: ImVec2, rect: math.RectF) void {
 fn onFileDropped(file: []const u8) void {
     if (fs.cwd().openDir(file, .{ .iterate = true })) |dir| {
         folder = file;
-    
+
         tightAtlas = upaya.TexturePacker.pack(file, .Tight) catch unreachable;
         looseAtlas = upaya.TexturePacker.pack(file, .Full) catch unreachable;
 
@@ -459,6 +456,13 @@ fn onFileDropped(file: []const u8) void {
             offsets.items[i] = sprite.origin;
         }
     } else |err| {
+        if (std.mem.endsWith(u8, file, ".pyxel")) {
+            std.debug.print("Pyxel file dropped!", .{});
+
+            
+
+
+        } else
         std.debug.print("Dropped a non-directory: {s}, err: {}\n", .{ file, err });
     }
 }
