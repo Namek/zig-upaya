@@ -1,7 +1,7 @@
 const std = @import("std");
 const fs = std.fs;
 const Image = @import("../image.zig").Image;
-const upaya = @import("../upaya_cli.zig");
+const upaya = @import("../upaya.zig");
 const math = upaya.math;
 const stb = upaya.stb;
 
@@ -66,10 +66,8 @@ pub const TexturePacker = struct {
                     var temp_row = @intCast(i32, @divTrunc(j, height_sub_image.w));
 
                     if (temp_row != row and r < 255) {
-                        
-                            r += 1;
-                            row = temp_row;
-                    
+                        r += 1;
+                        row = temp_row;
                     }
 
                     if (height_sub_image.pixels[j] & 0xFF000000 != 0) {
@@ -82,6 +80,77 @@ pub const TexturePacker = struct {
                 if (method == .Tight) {
                     _ = height_sub_image.crop();
                 }
+
+                heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
+            }
+
+            res_atlas.image = image;
+            res_atlas.heightmap = heightmap;
+            return res_atlas;
+        }
+
+        pub fn initImages(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, size: Size, method: PackingMethod) Atlas {
+            std.debug.assert(frames.len == files.len and frames.len == images.len);
+
+            var res_atlas = Atlas{
+                .sprites = upaya.mem.allocator.alloc(Sprite, images.len) catch unreachable,
+                .width = size.width,
+                .height = size.height,
+            };
+
+            // convert to upaya rects
+            for (frames) |frame, i| {
+                res_atlas.sprites[i].source = .{ .x = frame.x, .y = frame.y, .width = frame.w, .height = frame.h };
+            }
+
+            for (files) |file, i| {
+                res_atlas.sprites[i].name = file;
+            }
+
+            for (origins) |origin, i| {
+                res_atlas.sprites[i].origin = origin;
+            }
+
+            // generate the atlas
+            var image = upaya.Image.init(size.width, size.height);
+            image.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
+
+            var heightmap = upaya.Image.init(size.width, size.height);
+            heightmap.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
+
+            for (images) |im, i| {
+                var sub_image = im;
+                //defer sub_image.deinit();
+                // if (method == .Tight) {
+                //     _ = sub_image.crop();
+                // }
+                image.blit(sub_image, frames[i].x, frames[i].y);
+
+                var height_sub_image = im;
+                defer height_sub_image.deinit();
+
+                var r: u8 = 1;
+                var row: i32 = @intCast(i32, height_sub_image.h);
+                var containsColor: bool = false;
+                var j: usize = height_sub_image.pixels.len - 1;
+                while (j > 0) : (j -= 1) {
+                    var temp_row = @intCast(i32, @divTrunc(j, height_sub_image.w));
+
+                    if (temp_row != row and r < 255) {
+                        r += 1;
+                        row = temp_row;
+                    }
+
+                    if (height_sub_image.pixels[j] & 0xFF000000 != 0) {
+                        var color = upaya.math.Color.fromBytes(r, r, r, 255);
+                        height_sub_image.pixels[j] = color.value;
+                        containsColor = true;
+                    }
+                }
+
+                // if (method == .Tight) {
+                //     _ = height_sub_image.crop();
+                // }
 
                 heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
             }
@@ -141,6 +210,94 @@ pub const TexturePacker = struct {
 
         if (runRectPacker(frames)) |atlas_size| {
             return Atlas.init(frames, origins.items, pngs, atlas_size, method);
+        } else {
+            return error.NotEnoughRoom;
+        }
+    }
+
+    pub fn packPyxelEdit(files: []upaya.importers.PyxelEdit, method: PackingMethod) !Atlas {
+        var origins = std.ArrayList(math.Point).init(upaya.mem.allocator);
+        var names = std.ArrayList([]const u8).init(upaya.mem.allocator);
+        var images = std.ArrayList(upaya.Image).init(upaya.mem.allocator);
+        var frames = std.ArrayList(stb.stbrp_rect).init(upaya.mem.allocator);
+
+        for (files) |p| {
+            for (p.animations) |a| {
+                var i: usize = 0;
+                while (i < a.length) : (i += 1) {
+                    const w = @intCast(usize, p.canvas.tileWidth);
+                    const h = @intCast(usize, p.canvas.tileHeight);
+
+                    const tilesWide = @divExact(@intCast(usize, p.canvas.width), w);
+                    const tilesHigh = @divExact(@intCast(usize, p.canvas.height), h);
+                    const tile = @intCast(usize, a.baseTile) + i;
+
+                    const col = @mod(tile, tilesWide);
+                    const row = @divTrunc(tile, tilesWide);
+
+                    const src_x = col * w;
+                    const src_y = row * h;
+
+                    var img = upaya.Image.init(w, h);
+                    img.fillRect(.{ .width = p.canvas.tileWidth, .height = p.canvas.tileHeight }, upaya.math.Color.transparent);
+
+                    
+                    for (p.layers) |l| {
+                        if (l.hidden or l.muted) {
+                            continue;
+                        }
+
+                        var j = img.h;
+                        var dst_y: usize = 0;
+                        var yy = src_y;
+                        var data = img.pixels[dst_y * img.w ..];
+
+                        while (j > 0) : (j -= 1) {
+                            const src_row = l.texture.pixels[src_x + (yy * l.texture.w) .. (src_x + (yy * l.texture.w)) + img.w];
+                            //std.mem.copy(u32, data, src_row);
+
+                            for (src_row) |pixel, k| {
+                                if (data[k] & 0xFF000000 == 0){
+
+                                
+                                if (pixel & 0xFF000000 != 0){
+                                    data[k] = src_row[k];
+                                }
+                                }
+
+                            }
+
+                            yy += 1;
+                            dst_y += 1;
+                            data = img.pixels[dst_y * img.w ..];
+                        }
+                    }
+
+                    if (method == .Tight) {
+                        const offset = img.crop();
+                        try origins.append(.{ .x = 0 - offset.x, .y = 0 - offset.y });
+                    }
+
+                    if (method == .Full) {
+                        try origins.append(.{ .x = 0, .y = 0 });
+                    }
+
+                    try frames.append(.{
+                        .id = @intCast(c_int, i),
+                        .w = @intCast(u16, img.w),
+                        .h = @intCast(u16, img.h),
+                    });
+
+                    var name = try std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ a.name, "_", try std.fmt.allocPrint(upaya.mem.allocator, "{d}", .{i}) });
+                    try names.append(name);
+
+                    try images.append(img);
+                }
+            }
+        }
+
+        if (runRectPacker(frames.items)) |atlas_size| {
+            return Atlas.initImages(frames.items, origins.items, names.items, images.items, atlas_size, method);
         } else {
             return error.NotEnoughRoom;
         }

@@ -33,6 +33,28 @@ pub const Image = struct {
         return img;
     }
 
+    pub fn initFromData(data: [*c]const u8, len: u64) Image {
+        var w: c_int = undefined;
+        var h: c_int = undefined;
+        var channels: c_int = undefined;
+        const load_res = upaya.stb.stbi_load_from_memory(data, @intCast(c_int, len), &w, &h, &channels, 4);
+        if (load_res == null) {
+            std.debug.print("null image!\n", .{});
+            unreachable;
+        }
+        
+        defer upaya.stb.stbi_image_free(load_res);
+
+        var img = init(@intCast(usize, w), @intCast(usize, h));
+        var pixels = std.mem.bytesAsSlice(u32, load_res[0..@intCast(usize, w * h * channels)]);
+        for (pixels) |p, i| {
+            img.pixels[i] = p;
+        }
+
+        return img;
+
+    }
+
     pub fn deinit(self: Image) void {
         upaya.mem.allocator.free(self.pixels);
     }

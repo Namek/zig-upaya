@@ -214,8 +214,9 @@ fn update() void {
 
                     ogSetCursorScreenPos(tl);
                     _ = ogInvisibleButton("##sprite", sprSize, ImGuiButtonFlags_None);
+                    
 
-                    if (igIsItemHovered(ImGuiHoveredFlags_RectOnly)) {
+                    if (igIsItemHovered(ImGuiHoveredFlags_RectOnly) and igIsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
                         ogAddRect(igGetWindowDrawList(), tl, sprSize, colors.rgbaToU32(255, 255, 0, 128), 1);
 
                         if (igIsMouseReleased(ImGuiMouseButton_Left)) {
@@ -457,12 +458,60 @@ fn onFileDropped(file: []const u8) void {
         }
     } else |err| {
         if (std.mem.endsWith(u8, file, ".pyxel")) {
-            std.debug.print("Pyxel file dropped!", .{});
+            var zip_file = @ptrCast([*c]const u8, file);
+            var pyxelEditFile = [_]upaya.importers.PyxelEdit{upaya.importers.PyxelEdit.initFromFile(upaya.mem.allocator, file) catch unreachable};
 
-            
+            tightAtlas = upaya.TexturePacker.packPyxelEdit(pyxelEditFile[0..1], .Tight) catch unreachable;
+            looseAtlas = upaya.TexturePacker.packPyxelEdit(pyxelEditFile[0..1], .Full) catch unreachable;
 
+            tightTexture = tightAtlas.?.image.asTexture(.nearest);
+            looseTexture = looseAtlas.?.image.asTexture(.nearest);
 
-        } else
-        std.debug.print("Dropped a non-directory: {s}, err: {}\n", .{ file, err });
+            offsets.deinit();
+            offsets = std.ArrayList(upaya.math.Point).initCapacity(upaya.mem.allocator, tightAtlas.?.sprites.len) catch unreachable;
+            offsets.expandToCapacity();
+
+            for (tightAtlas.?.sprites) |sprite, i| {
+                // when this is run, the tight sprite origin is equal to its offset
+                offsets.items[i] = sprite.origin;
+            }
+
+            //Reading contents of a zip file
+
+            // var zip_file = @ptrCast([*c]const u8, file);
+            // var zip = upaya.zip.zip_open(zip_file, 0, 'r');
+
+            // var n = upaya.zip.zip_entries_total(zip);
+            // var i: c_int = 0;
+            // while (i < n) : (i += 1) {
+            //     _ = upaya.zip.zip_entry_openbyindex(zip, i);
+            //     var name = upaya.zip.zip_entry_name(zip);
+            //     std.debug.print("{s}\n", .{name});
+            //     _ = upaya.zip.zip_entry_close(zip);
+            // }
+
+            // var zip_file = @ptrCast([*c]const u8, file);
+            // var zip = upaya.zip.zip_open(zip_file, 0, 'r');
+
+            // // var n = upaya.zip.zip_entries_total(zip);
+            // // var i: c_int = 0;
+            // // while (i < n) : (i += 1) {
+
+            //     var buf: ?*c_void = null;
+            //     var size: u64 = 0;
+
+            //     _ = upaya.zip.zip_entry_open(zip, "docData.json");
+
+            //     _ = upaya.zip.zip_entry_read(zip, &buf, &size);
+
+            //     var dump = @ptrCast([*c]const u8, buf);
+
+            //     std.debug.print("{s}", .{dump});
+
+            //     _ = upaya.zip.zip_entry_close(zip);
+            // //}
+            // upaya.zip.zip_close(zip);
+
+        } else std.debug.print("Dropped a non-directory: {s}, err: {}\n", .{ file, err });
     }
 }

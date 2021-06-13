@@ -5,6 +5,7 @@ pub const sokol = @import("deps/sokol/sokol.zig");
 pub const stb = @import("deps/stb/stb.zig");
 pub const imgui = @import("deps/imgui/imgui.zig");
 pub const filebrowser = @import("deps/filebrowser/filebrowser.zig");
+pub const zip = @import("deps/zip/zip.zig");
 
 // types
 pub const TexturePacker = @import("utils/texture_packer.zig").TexturePacker;
@@ -22,6 +23,7 @@ pub const colors = @import("colors.zig");
 pub const menu = @import("menu.zig");
 pub const known_folders = @import("utils/known-folders.zig");
 pub const tilemaps = @import("tilemaps/tilemaps.zig");
+pub const importers = @import("utils/importers/importers.zig");
 
 usingnamespace sokol;
 usingnamespace imgui;

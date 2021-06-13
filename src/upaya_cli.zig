@@ -2,6 +2,7 @@ const std = @import("std");
 
 // libs
 pub const stb = @import("stb");
+pub const zip = @import("zip");
 
 // types
 pub const TexturePacker = @import("utils/texture_packer.zig").TexturePacker;
@@ -14,3 +15,4 @@ pub const mem = @import("mem/mem.zig");
 pub const fs = @import("fs.zig");
 pub const math = @import("math/math.zig");
 pub const known_folders = @import("utils/known-folders.zig");
+
