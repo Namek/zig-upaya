@@ -1,11 +1,11 @@
 const std = @import("std");
 
 // libs
-pub const sokol = @import("deps/sokol/sokol.zig");
-pub const stb = @import("deps/stb/stb.zig");
-pub const imgui = @import("deps/imgui/imgui.zig");
-pub const filebrowser = @import("deps/filebrowser/filebrowser.zig");
-pub const zip = @import("deps/zip/zip.zig");
+pub const sokol = @import("sokol");
+pub const stb = @import("stb");
+pub const imgui = @import("imgui");
+pub const filebrowser = @import("filebrowser");
+pub const zip = @import("zip");
 
 // types
 pub const TexturePacker = @import("utils/texture_packer.zig").TexturePacker;
@@ -80,7 +80,8 @@ pub fn run(config: Config) void {
     app_desc.window_title = config.window_title;
     app_desc.enable_clipboard = config.enable_clipboard;
     app_desc.clipboard_size = config.clipboard_size;
-
+    app_desc.fullscreen = config.fullscreen;
+    
     if (state.config.onFileDropped == null) {
         app_desc.max_dropped_files = 0;
     }

@@ -3,7 +3,7 @@ const upaya = @import("upaya.zig");
 usingnamespace upaya.sokol;
 
 pub const Texture = extern struct {
-    img: sg_image = undefined,
+    img: upaya.sokol.sg_image = undefined,
     width: i32 = 0,
     height: i32 = 0,
 
@@ -79,6 +79,29 @@ pub const Texture = extern struct {
         defer upaya.stb.stbi_image_free(load_res);
 
         return Texture.initWithData(load_res[0..@intCast(usize, w * h * channels)], w, h, filter);
+    }
+
+    pub fn initChecker(width: i32, height: i32, color1: upaya.math.Color, color2: upaya.math.Color) Texture {
+        var img = upaya.Image.init(@intCast(usize, width), @intCast(usize, height));
+        img.fillRect(.{ .width = width, .height = height }, color1);
+
+        var y: usize = 0;
+        while (y < img.h) : (y += 1) {
+            var row = img.pixels[y * img.w .. (y * img.w) + img.w];
+            for (row) |pixel, i| {
+                if (y % 2 == 0) {
+                    if (i % 2 != 0) {
+                        row[i] = color2.value;
+                    }
+                } else {
+                    if (i % 2 == 0) {
+                        row[i] = color2.value;
+                    }
+
+                }
+            }
+        }
+        return img.asTexture(.nearest);
     }
 
     pub fn deinit(self: Texture) void {
