@@ -36,6 +36,13 @@ pub const Texture = extern struct {
         return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
     }
 
+    pub fn initTransparent(width: i32, height: i32) Texture {
+        var img = upaya.Image.init(@intCast(usize, width), @intCast(usize, height));
+        img.fillRect(.{ .width = width, .height = height }, upaya.math.Color.transparent);
+        return img.asTexture(.nearest);
+
+    }
+
     pub fn initWithData(pixels: []u8, width: i32, height: i32, filter: Filter) Texture {
         var img_desc = std.mem.zeroes(sg_image_desc);
         img_desc.width = width;
