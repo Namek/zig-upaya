@@ -23,7 +23,8 @@ pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.buil
         exe.linkSystemLibrary("X11");
     }
 
-    exe.addIncludeDir(prefix_path ++ "src/deps/sokol");
+    exe.addIncludeDir(prefix_path ++ "src/deps/sokol/sokol");
+    exe.addIncludeDir(prefix_path ++ "src/deps/sokol/sokol/util");
     const c_flags = if (std.Target.current.os.tag == .macos) [_][]const u8{ "-std=c99", "-ObjC", "-fobjc-arc" } else [_][]const u8{"-std=c99"};
     exe.addCSourceFile(prefix_path ++ "src/deps/sokol/compile_sokol.c", &c_flags);
 }

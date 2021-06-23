@@ -1,8 +1,8 @@
 const std = @import("std");
 
 // libs
-pub const stb = @import("stb");
-pub const zip = @import("zip");
+pub const stb = @import("../src/deps/stb/stb.zig");
+pub const zip = @import("../src/deps/zip/zip.zig");
 
 // types
 pub const TexturePacker = @import("utils/texture_packer.zig").TexturePacker;
