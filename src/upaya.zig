@@ -81,10 +81,15 @@ pub fn run(config: Config) void {
     app_desc.enable_clipboard = config.enable_clipboard;
     app_desc.clipboard_size = config.clipboard_size;
     app_desc.fullscreen = config.fullscreen;
-    
+
     if (state.config.onFileDropped == null) {
+        app_desc.enable_dragndrop = false;
         app_desc.max_dropped_files = 0;
     }
+    else {
+        app_desc.enable_dragndrop = true;
+    }
+
 
     app_desc.alpha = false;
     _ = sapp_run(&app_desc);
@@ -128,7 +133,7 @@ export fn init() void {
     loadDefaultFont();
 
     state.pass_action.colors[0].action = .SG_ACTION_CLEAR;
-    state.pass_action.colors[0].val = [_]f32{ 0.15294117647, 0.15686274510, 0.18823529412, 1 };
+    state.pass_action.colors[0].value = .{ .r = 0.15294117647, .g = 0.15686274510, .b = 0.18823529412, .a = 1 };
 
     state.config.init();
 }
@@ -150,7 +155,7 @@ export fn update() void {
 
 export fn event(e: [*c]const sapp_event) void {
     // special handling of dropped files
-    if (e[0].type == .SAPP_EVENTTYPE_FILE_DROPPED) {
+    if (e[0].type == .SAPP_EVENTTYPE_FILES_DROPPED) {
         if (state.config.onFileDropped) |onFileDropped| {
             const dropped_file_cnt = sapp_get_num_dropped_files();
             var i: usize = 0;

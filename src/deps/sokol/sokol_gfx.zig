@@ -15,17 +15,20 @@ pub extern fn sg_destroy_image(img: sg_image) void;
 pub extern fn sg_destroy_shader(shd: sg_shader) void;
 pub extern fn sg_destroy_pipeline(pip: sg_pipeline) void;
 pub extern fn sg_destroy_pass(pass: sg_pass) void;
-pub extern fn sg_update_buffer(buf: sg_buffer, data_ptr: ?*const c_void, data_size: c_int) void;
-pub extern fn sg_update_image(img: sg_image, data: [*c]const sg_image_content) void;
-pub extern fn sg_append_buffer(buf: sg_buffer, data_ptr: ?*const c_void, data_size: c_int) c_int;
+pub extern fn sg_update_buffer(buf: sg_buffer, data: [*c]const sg_range) void;
+pub extern fn sg_update_image(img: sg_image, data: [*c]const sg_image_data) void;
+pub extern fn sg_append_buffer(buf: sg_buffer, data: [*c]const sg_range) c_int;
 pub extern fn sg_query_buffer_overflow(buf: sg_buffer) bool;
 pub extern fn sg_begin_default_pass(pass_action: [*c]const sg_pass_action, width: c_int, height: c_int) void;
+pub extern fn sg_begin_default_passf(pass_action: [*c]const sg_pass_action, width: f32, height: f32) void;
 pub extern fn sg_begin_pass(pass: sg_pass, pass_action: [*c]const sg_pass_action) void;
 pub extern fn sg_apply_viewport(x: c_int, y: c_int, width: c_int, height: c_int, origin_top_left: bool) void;
+pub extern fn sg_apply_viewportf(x: f32, y: f32, width: f32, height: f32, origin_top_left: bool) void;
 pub extern fn sg_apply_scissor_rect(x: c_int, y: c_int, width: c_int, height: c_int, origin_top_left: bool) void;
+pub extern fn sg_apply_scissor_rectf(x: f32, y: f32, width: f32, height: f32, origin_top_left: bool) void;
 pub extern fn sg_apply_pipeline(pip: sg_pipeline) void;
 pub extern fn sg_apply_bindings(bindings: [*c]const sg_bindings) void;
-pub extern fn sg_apply_uniforms(stage: sg_shader_stage, ub_index: c_int, data: ?*const c_void, num_bytes: c_int) void;
+pub extern fn sg_apply_uniforms(stage: sg_shader_stage, ub_index: c_int, data: [*c]const sg_range) void;
 pub extern fn sg_draw(base_element: c_int, num_elements: c_int, num_instances: c_int) void;
 pub extern fn sg_end_pass() void;
 pub extern fn sg_commit() void;
@@ -54,11 +57,21 @@ pub extern fn sg_alloc_image() sg_image;
 pub extern fn sg_alloc_shader() sg_shader;
 pub extern fn sg_alloc_pipeline() sg_pipeline;
 pub extern fn sg_alloc_pass() sg_pass;
+pub extern fn sg_dealloc_buffer(buf_id: sg_buffer) void;
+pub extern fn sg_dealloc_image(img_id: sg_image) void;
+pub extern fn sg_dealloc_shader(shd_id: sg_shader) void;
+pub extern fn sg_dealloc_pipeline(pip_id: sg_pipeline) void;
+pub extern fn sg_dealloc_pass(pass_id: sg_pass) void;
 pub extern fn sg_init_buffer(buf_id: sg_buffer, desc: [*c]const sg_buffer_desc) void;
 pub extern fn sg_init_image(img_id: sg_image, desc: [*c]const sg_image_desc) void;
 pub extern fn sg_init_shader(shd_id: sg_shader, desc: [*c]const sg_shader_desc) void;
 pub extern fn sg_init_pipeline(pip_id: sg_pipeline, desc: [*c]const sg_pipeline_desc) void;
 pub extern fn sg_init_pass(pass_id: sg_pass, desc: [*c]const sg_pass_desc) void;
+pub extern fn sg_uninit_buffer(buf_id: sg_buffer) bool;
+pub extern fn sg_uninit_image(img_id: sg_image) bool;
+pub extern fn sg_uninit_shader(shd_id: sg_shader) bool;
+pub extern fn sg_uninit_pipeline(pip_id: sg_pipeline) bool;
+pub extern fn sg_uninit_pass(pass_id: sg_pass) bool;
 pub extern fn sg_fail_buffer(buf_id: sg_buffer) void;
 pub extern fn sg_fail_image(img_id: sg_image) void;
 pub extern fn sg_fail_shader(shd_id: sg_shader) void;
@@ -67,8 +80,15 @@ pub extern fn sg_fail_pass(pass_id: sg_pass) void;
 pub extern fn sg_setup_context() sg_context;
 pub extern fn sg_activate_context(ctx_id: sg_context) void;
 pub extern fn sg_discard_context(ctx_id: sg_context) void;
+pub extern fn sg_d3d11_device() ?*const c_void;
+pub extern fn sg_mtl_device() ?*const c_void;
 pub extern fn sg_mtl_render_command_encoder() ?*const c_void;
-
+pub inline fn SG_RANGE(x: anytype) sg_range {
+    return @import("std").mem.zeroInit(sg_range, .{ &x, @import("std").meta.sizeof(x) });
+}
+pub inline fn SG_RANGE_REF(x: anytype) @TypeOf(&@import("std").mem.zeroInit(sg_range, .{ &x, @import("std").meta.sizeof(x) })) {
+    return &@import("std").mem.zeroInit(sg_range, .{ &x, @import("std").meta.sizeof(x) });
+}
 pub const struct_sg_buffer = extern struct {
     id: u32,
 };
@@ -93,18 +113,12 @@ pub const struct_sg_context = extern struct {
     id: u32,
 };
 pub const sg_context = struct_sg_context;
-pub const SG_INVALID_ID = @enumToInt(enum_unnamed_2.SG_INVALID_ID);
-pub const SG_NUM_SHADER_STAGES = @enumToInt(enum_unnamed_2.SG_NUM_SHADER_STAGES);
-pub const SG_NUM_INFLIGHT_FRAMES = @enumToInt(enum_unnamed_2.SG_NUM_INFLIGHT_FRAMES);
-pub const SG_MAX_COLOR_ATTACHMENTS = @enumToInt(enum_unnamed_2.SG_MAX_COLOR_ATTACHMENTS);
-pub const SG_MAX_SHADERSTAGE_BUFFERS = @enumToInt(enum_unnamed_2.SG_MAX_SHADERSTAGE_BUFFERS);
-pub const SG_MAX_SHADERSTAGE_IMAGES = @enumToInt(enum_unnamed_2.SG_MAX_SHADERSTAGE_IMAGES);
-pub const SG_MAX_SHADERSTAGE_UBS = @enumToInt(enum_unnamed_2.SG_MAX_SHADERSTAGE_UBS);
-pub const SG_MAX_UB_MEMBERS = @enumToInt(enum_unnamed_2.SG_MAX_UB_MEMBERS);
-pub const SG_MAX_VERTEX_ATTRIBUTES = @enumToInt(enum_unnamed_2.SG_MAX_VERTEX_ATTRIBUTES);
-pub const SG_MAX_MIPMAPS = @enumToInt(enum_unnamed_2.SG_MAX_MIPMAPS);
-pub const SG_MAX_TEXTUREARRAY_LAYERS = @enumToInt(enum_unnamed_2.SG_MAX_TEXTUREARRAY_LAYERS);
-const enum_unnamed_2 = extern enum(c_int) {
+pub const struct_sg_range = extern struct {
+    ptr: ?*const c_void,
+    size: usize,
+};
+pub const sg_range = struct_sg_range;
+const enum_unnamed_1 = extern enum(c_int) {
     SG_INVALID_ID = 0,
     SG_NUM_SHADER_STAGES = 2,
     SG_NUM_INFLIGHT_FRAMES = 2,
@@ -118,15 +132,24 @@ const enum_unnamed_2 = extern enum(c_int) {
     SG_MAX_TEXTUREARRAY_LAYERS = 128,
     _,
 };
-pub const SG_BACKEND_GLCORE33 = @enumToInt(enum_sg_backend.SG_BACKEND_GLCORE33);
-pub const SG_BACKEND_GLES2 = @enumToInt(enum_sg_backend.SG_BACKEND_GLES2);
-pub const SG_BACKEND_GLES3 = @enumToInt(enum_sg_backend.SG_BACKEND_GLES3);
-pub const SG_BACKEND_D3D11 = @enumToInt(enum_sg_backend.SG_BACKEND_D3D11);
-pub const SG_BACKEND_METAL_IOS = @enumToInt(enum_sg_backend.SG_BACKEND_METAL_IOS);
-pub const SG_BACKEND_METAL_MACOS = @enumToInt(enum_sg_backend.SG_BACKEND_METAL_MACOS);
-pub const SG_BACKEND_METAL_SIMULATOR = @enumToInt(enum_sg_backend.SG_BACKEND_METAL_SIMULATOR);
-pub const SG_BACKEND_WGPU = @enumToInt(enum_sg_backend.SG_BACKEND_WGPU);
-pub const SG_BACKEND_DUMMY = @enumToInt(enum_sg_backend.SG_BACKEND_DUMMY);
+pub const SG_INVALID_ID = @enumToInt(enum_unnamed_1.SG_INVALID_ID);
+pub const SG_NUM_SHADER_STAGES = @enumToInt(enum_unnamed_1.SG_NUM_SHADER_STAGES);
+pub const SG_NUM_INFLIGHT_FRAMES = @enumToInt(enum_unnamed_1.SG_NUM_INFLIGHT_FRAMES);
+pub const SG_MAX_COLOR_ATTACHMENTS = @enumToInt(enum_unnamed_1.SG_MAX_COLOR_ATTACHMENTS);
+pub const SG_MAX_SHADERSTAGE_BUFFERS = @enumToInt(enum_unnamed_1.SG_MAX_SHADERSTAGE_BUFFERS);
+pub const SG_MAX_SHADERSTAGE_IMAGES = @enumToInt(enum_unnamed_1.SG_MAX_SHADERSTAGE_IMAGES);
+pub const SG_MAX_SHADERSTAGE_UBS = @enumToInt(enum_unnamed_1.SG_MAX_SHADERSTAGE_UBS);
+pub const SG_MAX_UB_MEMBERS = @enumToInt(enum_unnamed_1.SG_MAX_UB_MEMBERS);
+pub const SG_MAX_VERTEX_ATTRIBUTES = @enumToInt(enum_unnamed_1.SG_MAX_VERTEX_ATTRIBUTES);
+pub const SG_MAX_MIPMAPS = @enumToInt(enum_unnamed_1.SG_MAX_MIPMAPS);
+pub const SG_MAX_TEXTUREARRAY_LAYERS = @enumToInt(enum_unnamed_1.SG_MAX_TEXTUREARRAY_LAYERS);
+pub const struct_sg_color = extern struct {
+    r: f32,
+    g: f32,
+    b: f32,
+    a: f32,
+};
+pub const sg_color = struct_sg_color;
 pub const enum_sg_backend = extern enum(c_int) {
     SG_BACKEND_GLCORE33,
     SG_BACKEND_GLES2,
@@ -139,71 +162,16 @@ pub const enum_sg_backend = extern enum(c_int) {
     SG_BACKEND_DUMMY,
     _,
 };
+pub const SG_BACKEND_GLCORE33 = @enumToInt(enum_sg_backend.SG_BACKEND_GLCORE33);
+pub const SG_BACKEND_GLES2 = @enumToInt(enum_sg_backend.SG_BACKEND_GLES2);
+pub const SG_BACKEND_GLES3 = @enumToInt(enum_sg_backend.SG_BACKEND_GLES3);
+pub const SG_BACKEND_D3D11 = @enumToInt(enum_sg_backend.SG_BACKEND_D3D11);
+pub const SG_BACKEND_METAL_IOS = @enumToInt(enum_sg_backend.SG_BACKEND_METAL_IOS);
+pub const SG_BACKEND_METAL_MACOS = @enumToInt(enum_sg_backend.SG_BACKEND_METAL_MACOS);
+pub const SG_BACKEND_METAL_SIMULATOR = @enumToInt(enum_sg_backend.SG_BACKEND_METAL_SIMULATOR);
+pub const SG_BACKEND_WGPU = @enumToInt(enum_sg_backend.SG_BACKEND_WGPU);
+pub const SG_BACKEND_DUMMY = @enumToInt(enum_sg_backend.SG_BACKEND_DUMMY);
 pub const sg_backend = enum_sg_backend;
-pub const _SG_PIXELFORMAT_DEFAULT = @enumToInt(enum_sg_pixel_format._SG_PIXELFORMAT_DEFAULT);
-pub const SG_PIXELFORMAT_NONE = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_NONE);
-pub const SG_PIXELFORMAT_R8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8);
-pub const SG_PIXELFORMAT_R8SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8SN);
-pub const SG_PIXELFORMAT_R8UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8UI);
-pub const SG_PIXELFORMAT_R8SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8SI);
-pub const SG_PIXELFORMAT_R16 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16);
-pub const SG_PIXELFORMAT_R16SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16SN);
-pub const SG_PIXELFORMAT_R16UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16UI);
-pub const SG_PIXELFORMAT_R16SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16SI);
-pub const SG_PIXELFORMAT_R16F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16F);
-pub const SG_PIXELFORMAT_RG8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8);
-pub const SG_PIXELFORMAT_RG8SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8SN);
-pub const SG_PIXELFORMAT_RG8UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8UI);
-pub const SG_PIXELFORMAT_RG8SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8SI);
-pub const SG_PIXELFORMAT_R32UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R32UI);
-pub const SG_PIXELFORMAT_R32SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R32SI);
-pub const SG_PIXELFORMAT_R32F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R32F);
-pub const SG_PIXELFORMAT_RG16 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16);
-pub const SG_PIXELFORMAT_RG16SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16SN);
-pub const SG_PIXELFORMAT_RG16UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16UI);
-pub const SG_PIXELFORMAT_RG16SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16SI);
-pub const SG_PIXELFORMAT_RG16F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16F);
-pub const SG_PIXELFORMAT_RGBA8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8);
-pub const SG_PIXELFORMAT_RGBA8SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8SN);
-pub const SG_PIXELFORMAT_RGBA8UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8UI);
-pub const SG_PIXELFORMAT_RGBA8SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8SI);
-pub const SG_PIXELFORMAT_BGRA8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BGRA8);
-pub const SG_PIXELFORMAT_RGB10A2 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGB10A2);
-pub const SG_PIXELFORMAT_RG11B10F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG11B10F);
-pub const SG_PIXELFORMAT_RG32UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG32UI);
-pub const SG_PIXELFORMAT_RG32SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG32SI);
-pub const SG_PIXELFORMAT_RG32F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG32F);
-pub const SG_PIXELFORMAT_RGBA16 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16);
-pub const SG_PIXELFORMAT_RGBA16SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16SN);
-pub const SG_PIXELFORMAT_RGBA16UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16UI);
-pub const SG_PIXELFORMAT_RGBA16SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16SI);
-pub const SG_PIXELFORMAT_RGBA16F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16F);
-pub const SG_PIXELFORMAT_RGBA32UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA32UI);
-pub const SG_PIXELFORMAT_RGBA32SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA32SI);
-pub const SG_PIXELFORMAT_RGBA32F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA32F);
-pub const SG_PIXELFORMAT_DEPTH = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_DEPTH);
-pub const SG_PIXELFORMAT_DEPTH_STENCIL = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_DEPTH_STENCIL);
-pub const SG_PIXELFORMAT_BC1_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC1_RGBA);
-pub const SG_PIXELFORMAT_BC2_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC2_RGBA);
-pub const SG_PIXELFORMAT_BC3_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC3_RGBA);
-pub const SG_PIXELFORMAT_BC4_R = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC4_R);
-pub const SG_PIXELFORMAT_BC4_RSN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC4_RSN);
-pub const SG_PIXELFORMAT_BC5_RG = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC5_RG);
-pub const SG_PIXELFORMAT_BC5_RGSN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC5_RGSN);
-pub const SG_PIXELFORMAT_BC6H_RGBF = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC6H_RGBF);
-pub const SG_PIXELFORMAT_BC6H_RGBUF = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC6H_RGBUF);
-pub const SG_PIXELFORMAT_BC7_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC7_RGBA);
-pub const SG_PIXELFORMAT_PVRTC_RGB_2BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGB_2BPP);
-pub const SG_PIXELFORMAT_PVRTC_RGB_4BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGB_4BPP);
-pub const SG_PIXELFORMAT_PVRTC_RGBA_2BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGBA_2BPP);
-pub const SG_PIXELFORMAT_PVRTC_RGBA_4BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGBA_4BPP);
-pub const SG_PIXELFORMAT_ETC2_RGB8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RGB8);
-pub const SG_PIXELFORMAT_ETC2_RGB8A1 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RGB8A1);
-pub const SG_PIXELFORMAT_ETC2_RGBA8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RGBA8);
-pub const SG_PIXELFORMAT_ETC2_RG11 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RG11);
-pub const SG_PIXELFORMAT_ETC2_RG11SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RG11SN);
-pub const _SG_PIXELFORMAT_NUM = @enumToInt(enum_sg_pixel_format._SG_PIXELFORMAT_NUM);
-pub const _SG_PIXELFORMAT_FORCE_U32 = @enumToInt(enum_sg_pixel_format._SG_PIXELFORMAT_FORCE_U32);
 pub const enum_sg_pixel_format = extern enum(c_int) {
     _SG_PIXELFORMAT_DEFAULT = 0,
     SG_PIXELFORMAT_NONE = 1,
@@ -271,6 +239,70 @@ pub const enum_sg_pixel_format = extern enum(c_int) {
     _SG_PIXELFORMAT_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_PIXELFORMAT_DEFAULT = @enumToInt(enum_sg_pixel_format._SG_PIXELFORMAT_DEFAULT);
+pub const SG_PIXELFORMAT_NONE = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_NONE);
+pub const SG_PIXELFORMAT_R8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8);
+pub const SG_PIXELFORMAT_R8SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8SN);
+pub const SG_PIXELFORMAT_R8UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8UI);
+pub const SG_PIXELFORMAT_R8SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R8SI);
+pub const SG_PIXELFORMAT_R16 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16);
+pub const SG_PIXELFORMAT_R16SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16SN);
+pub const SG_PIXELFORMAT_R16UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16UI);
+pub const SG_PIXELFORMAT_R16SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16SI);
+pub const SG_PIXELFORMAT_R16F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R16F);
+pub const SG_PIXELFORMAT_RG8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8);
+pub const SG_PIXELFORMAT_RG8SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8SN);
+pub const SG_PIXELFORMAT_RG8UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8UI);
+pub const SG_PIXELFORMAT_RG8SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG8SI);
+pub const SG_PIXELFORMAT_R32UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R32UI);
+pub const SG_PIXELFORMAT_R32SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R32SI);
+pub const SG_PIXELFORMAT_R32F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_R32F);
+pub const SG_PIXELFORMAT_RG16 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16);
+pub const SG_PIXELFORMAT_RG16SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16SN);
+pub const SG_PIXELFORMAT_RG16UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16UI);
+pub const SG_PIXELFORMAT_RG16SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16SI);
+pub const SG_PIXELFORMAT_RG16F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG16F);
+pub const SG_PIXELFORMAT_RGBA8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8);
+pub const SG_PIXELFORMAT_RGBA8SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8SN);
+pub const SG_PIXELFORMAT_RGBA8UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8UI);
+pub const SG_PIXELFORMAT_RGBA8SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA8SI);
+pub const SG_PIXELFORMAT_BGRA8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BGRA8);
+pub const SG_PIXELFORMAT_RGB10A2 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGB10A2);
+pub const SG_PIXELFORMAT_RG11B10F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG11B10F);
+pub const SG_PIXELFORMAT_RG32UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG32UI);
+pub const SG_PIXELFORMAT_RG32SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG32SI);
+pub const SG_PIXELFORMAT_RG32F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RG32F);
+pub const SG_PIXELFORMAT_RGBA16 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16);
+pub const SG_PIXELFORMAT_RGBA16SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16SN);
+pub const SG_PIXELFORMAT_RGBA16UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16UI);
+pub const SG_PIXELFORMAT_RGBA16SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16SI);
+pub const SG_PIXELFORMAT_RGBA16F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA16F);
+pub const SG_PIXELFORMAT_RGBA32UI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA32UI);
+pub const SG_PIXELFORMAT_RGBA32SI = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA32SI);
+pub const SG_PIXELFORMAT_RGBA32F = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_RGBA32F);
+pub const SG_PIXELFORMAT_DEPTH = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_DEPTH);
+pub const SG_PIXELFORMAT_DEPTH_STENCIL = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_DEPTH_STENCIL);
+pub const SG_PIXELFORMAT_BC1_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC1_RGBA);
+pub const SG_PIXELFORMAT_BC2_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC2_RGBA);
+pub const SG_PIXELFORMAT_BC3_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC3_RGBA);
+pub const SG_PIXELFORMAT_BC4_R = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC4_R);
+pub const SG_PIXELFORMAT_BC4_RSN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC4_RSN);
+pub const SG_PIXELFORMAT_BC5_RG = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC5_RG);
+pub const SG_PIXELFORMAT_BC5_RGSN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC5_RGSN);
+pub const SG_PIXELFORMAT_BC6H_RGBF = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC6H_RGBF);
+pub const SG_PIXELFORMAT_BC6H_RGBUF = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC6H_RGBUF);
+pub const SG_PIXELFORMAT_BC7_RGBA = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_BC7_RGBA);
+pub const SG_PIXELFORMAT_PVRTC_RGB_2BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGB_2BPP);
+pub const SG_PIXELFORMAT_PVRTC_RGB_4BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGB_4BPP);
+pub const SG_PIXELFORMAT_PVRTC_RGBA_2BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGBA_2BPP);
+pub const SG_PIXELFORMAT_PVRTC_RGBA_4BPP = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_PVRTC_RGBA_4BPP);
+pub const SG_PIXELFORMAT_ETC2_RGB8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RGB8);
+pub const SG_PIXELFORMAT_ETC2_RGB8A1 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RGB8A1);
+pub const SG_PIXELFORMAT_ETC2_RGBA8 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RGBA8);
+pub const SG_PIXELFORMAT_ETC2_RG11 = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RG11);
+pub const SG_PIXELFORMAT_ETC2_RG11SN = @enumToInt(enum_sg_pixel_format.SG_PIXELFORMAT_ETC2_RG11SN);
+pub const _SG_PIXELFORMAT_NUM = @enumToInt(enum_sg_pixel_format._SG_PIXELFORMAT_NUM);
+pub const _SG_PIXELFORMAT_FORCE_U32 = @enumToInt(enum_sg_pixel_format._SG_PIXELFORMAT_FORCE_U32);
 pub const sg_pixel_format = enum_sg_pixel_format;
 pub const struct_sg_pixelformat_info = extern struct {
     sample: bool,
@@ -289,23 +321,20 @@ pub const struct_sg_features = extern struct {
     imagetype_3d: bool,
     imagetype_array: bool,
     image_clamp_to_border: bool,
+    mrt_independent_blend_state: bool,
+    mrt_independent_write_mask: bool,
 };
 pub const sg_features = struct_sg_features;
 pub const struct_sg_limits = extern struct {
-    max_image_size_2d: u32,
-    max_image_size_cube: u32,
-    max_image_size_3d: u32,
-    max_image_size_array: u32,
-    max_image_array_layers: u32,
-    max_vertex_attrs: u32,
+    max_image_size_2d: c_int,
+    max_image_size_cube: c_int,
+    max_image_size_3d: c_int,
+    max_image_size_array: c_int,
+    max_image_array_layers: c_int,
+    max_vertex_attrs: c_int,
+    gl_max_vertex_uniform_vectors: c_int,
 };
 pub const sg_limits = struct_sg_limits;
-pub const SG_RESOURCESTATE_INITIAL = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_INITIAL);
-pub const SG_RESOURCESTATE_ALLOC = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_ALLOC);
-pub const SG_RESOURCESTATE_VALID = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_VALID);
-pub const SG_RESOURCESTATE_FAILED = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_FAILED);
-pub const SG_RESOURCESTATE_INVALID = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_INVALID);
-pub const _SG_RESOURCESTATE_FORCE_U32 = @enumToInt(enum_sg_resource_state._SG_RESOURCESTATE_FORCE_U32);
 pub const enum_sg_resource_state = extern enum(c_int) {
     SG_RESOURCESTATE_INITIAL = 0,
     SG_RESOURCESTATE_ALLOC = 1,
@@ -315,13 +344,13 @@ pub const enum_sg_resource_state = extern enum(c_int) {
     _SG_RESOURCESTATE_FORCE_U32 = 2147483647,
     _,
 };
+pub const SG_RESOURCESTATE_INITIAL = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_INITIAL);
+pub const SG_RESOURCESTATE_ALLOC = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_ALLOC);
+pub const SG_RESOURCESTATE_VALID = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_VALID);
+pub const SG_RESOURCESTATE_FAILED = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_FAILED);
+pub const SG_RESOURCESTATE_INVALID = @enumToInt(enum_sg_resource_state.SG_RESOURCESTATE_INVALID);
+pub const _SG_RESOURCESTATE_FORCE_U32 = @enumToInt(enum_sg_resource_state._SG_RESOURCESTATE_FORCE_U32);
 pub const sg_resource_state = enum_sg_resource_state;
-pub const _SG_USAGE_DEFAULT = @enumToInt(enum_sg_usage._SG_USAGE_DEFAULT);
-pub const SG_USAGE_IMMUTABLE = @enumToInt(enum_sg_usage.SG_USAGE_IMMUTABLE);
-pub const SG_USAGE_DYNAMIC = @enumToInt(enum_sg_usage.SG_USAGE_DYNAMIC);
-pub const SG_USAGE_STREAM = @enumToInt(enum_sg_usage.SG_USAGE_STREAM);
-pub const _SG_USAGE_NUM = @enumToInt(enum_sg_usage._SG_USAGE_NUM);
-pub const _SG_USAGE_FORCE_U32 = @enumToInt(enum_sg_usage._SG_USAGE_FORCE_U32);
 pub const enum_sg_usage = extern enum(c_int) {
     _SG_USAGE_DEFAULT = 0,
     SG_USAGE_IMMUTABLE = 1,
@@ -331,12 +360,13 @@ pub const enum_sg_usage = extern enum(c_int) {
     _SG_USAGE_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_USAGE_DEFAULT = @enumToInt(enum_sg_usage._SG_USAGE_DEFAULT);
+pub const SG_USAGE_IMMUTABLE = @enumToInt(enum_sg_usage.SG_USAGE_IMMUTABLE);
+pub const SG_USAGE_DYNAMIC = @enumToInt(enum_sg_usage.SG_USAGE_DYNAMIC);
+pub const SG_USAGE_STREAM = @enumToInt(enum_sg_usage.SG_USAGE_STREAM);
+pub const _SG_USAGE_NUM = @enumToInt(enum_sg_usage._SG_USAGE_NUM);
+pub const _SG_USAGE_FORCE_U32 = @enumToInt(enum_sg_usage._SG_USAGE_FORCE_U32);
 pub const sg_usage = enum_sg_usage;
-pub const _SG_BUFFERTYPE_DEFAULT = @enumToInt(enum_sg_buffer_type._SG_BUFFERTYPE_DEFAULT);
-pub const SG_BUFFERTYPE_VERTEXBUFFER = @enumToInt(enum_sg_buffer_type.SG_BUFFERTYPE_VERTEXBUFFER);
-pub const SG_BUFFERTYPE_INDEXBUFFER = @enumToInt(enum_sg_buffer_type.SG_BUFFERTYPE_INDEXBUFFER);
-pub const _SG_BUFFERTYPE_NUM = @enumToInt(enum_sg_buffer_type._SG_BUFFERTYPE_NUM);
-pub const _SG_BUFFERTYPE_FORCE_U32 = @enumToInt(enum_sg_buffer_type._SG_BUFFERTYPE_FORCE_U32);
 pub const enum_sg_buffer_type = extern enum(c_int) {
     _SG_BUFFERTYPE_DEFAULT = 0,
     SG_BUFFERTYPE_VERTEXBUFFER = 1,
@@ -345,13 +375,12 @@ pub const enum_sg_buffer_type = extern enum(c_int) {
     _SG_BUFFERTYPE_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_BUFFERTYPE_DEFAULT = @enumToInt(enum_sg_buffer_type._SG_BUFFERTYPE_DEFAULT);
+pub const SG_BUFFERTYPE_VERTEXBUFFER = @enumToInt(enum_sg_buffer_type.SG_BUFFERTYPE_VERTEXBUFFER);
+pub const SG_BUFFERTYPE_INDEXBUFFER = @enumToInt(enum_sg_buffer_type.SG_BUFFERTYPE_INDEXBUFFER);
+pub const _SG_BUFFERTYPE_NUM = @enumToInt(enum_sg_buffer_type._SG_BUFFERTYPE_NUM);
+pub const _SG_BUFFERTYPE_FORCE_U32 = @enumToInt(enum_sg_buffer_type._SG_BUFFERTYPE_FORCE_U32);
 pub const sg_buffer_type = enum_sg_buffer_type;
-pub const _SG_INDEXTYPE_DEFAULT = @enumToInt(enum_sg_index_type._SG_INDEXTYPE_DEFAULT);
-pub const SG_INDEXTYPE_NONE = @enumToInt(enum_sg_index_type.SG_INDEXTYPE_NONE);
-pub const SG_INDEXTYPE_UINT16 = @enumToInt(enum_sg_index_type.SG_INDEXTYPE_UINT16);
-pub const SG_INDEXTYPE_UINT32 = @enumToInt(enum_sg_index_type.SG_INDEXTYPE_UINT32);
-pub const _SG_INDEXTYPE_NUM = @enumToInt(enum_sg_index_type._SG_INDEXTYPE_NUM);
-pub const _SG_INDEXTYPE_FORCE_U32 = @enumToInt(enum_sg_index_type._SG_INDEXTYPE_FORCE_U32);
 pub const enum_sg_index_type = extern enum(c_int) {
     _SG_INDEXTYPE_DEFAULT = 0,
     SG_INDEXTYPE_NONE = 1,
@@ -361,14 +390,13 @@ pub const enum_sg_index_type = extern enum(c_int) {
     _SG_INDEXTYPE_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_INDEXTYPE_DEFAULT = @enumToInt(enum_sg_index_type._SG_INDEXTYPE_DEFAULT);
+pub const SG_INDEXTYPE_NONE = @enumToInt(enum_sg_index_type.SG_INDEXTYPE_NONE);
+pub const SG_INDEXTYPE_UINT16 = @enumToInt(enum_sg_index_type.SG_INDEXTYPE_UINT16);
+pub const SG_INDEXTYPE_UINT32 = @enumToInt(enum_sg_index_type.SG_INDEXTYPE_UINT32);
+pub const _SG_INDEXTYPE_NUM = @enumToInt(enum_sg_index_type._SG_INDEXTYPE_NUM);
+pub const _SG_INDEXTYPE_FORCE_U32 = @enumToInt(enum_sg_index_type._SG_INDEXTYPE_FORCE_U32);
 pub const sg_index_type = enum_sg_index_type;
-pub const _SG_IMAGETYPE_DEFAULT = @enumToInt(enum_sg_image_type._SG_IMAGETYPE_DEFAULT);
-pub const SG_IMAGETYPE_2D = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_2D);
-pub const SG_IMAGETYPE_CUBE = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_CUBE);
-pub const SG_IMAGETYPE_3D = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_3D);
-pub const SG_IMAGETYPE_ARRAY = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_ARRAY);
-pub const _SG_IMAGETYPE_NUM = @enumToInt(enum_sg_image_type._SG_IMAGETYPE_NUM);
-pub const _SG_IMAGETYPE_FORCE_U32 = @enumToInt(enum_sg_image_type._SG_IMAGETYPE_FORCE_U32);
 pub const enum_sg_image_type = extern enum(c_int) {
     _SG_IMAGETYPE_DEFAULT = 0,
     SG_IMAGETYPE_2D = 1,
@@ -379,11 +407,14 @@ pub const enum_sg_image_type = extern enum(c_int) {
     _SG_IMAGETYPE_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_IMAGETYPE_DEFAULT = @enumToInt(enum_sg_image_type._SG_IMAGETYPE_DEFAULT);
+pub const SG_IMAGETYPE_2D = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_2D);
+pub const SG_IMAGETYPE_CUBE = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_CUBE);
+pub const SG_IMAGETYPE_3D = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_3D);
+pub const SG_IMAGETYPE_ARRAY = @enumToInt(enum_sg_image_type.SG_IMAGETYPE_ARRAY);
+pub const _SG_IMAGETYPE_NUM = @enumToInt(enum_sg_image_type._SG_IMAGETYPE_NUM);
+pub const _SG_IMAGETYPE_FORCE_U32 = @enumToInt(enum_sg_image_type._SG_IMAGETYPE_FORCE_U32);
 pub const sg_image_type = enum_sg_image_type;
-pub const _SG_SAMPLERTYPE_DEFAULT = @enumToInt(enum_sg_sampler_type._SG_SAMPLERTYPE_DEFAULT);
-pub const SG_SAMPLERTYPE_FLOAT = @enumToInt(enum_sg_sampler_type.SG_SAMPLERTYPE_FLOAT);
-pub const SG_SAMPLERTYPE_SINT = @enumToInt(enum_sg_sampler_type.SG_SAMPLERTYPE_SINT);
-pub const SG_SAMPLERTYPE_UINT = @enumToInt(enum_sg_sampler_type.SG_SAMPLERTYPE_UINT);
 pub const enum_sg_sampler_type = extern enum(c_int) {
     _SG_SAMPLERTYPE_DEFAULT,
     SG_SAMPLERTYPE_FLOAT,
@@ -391,15 +422,11 @@ pub const enum_sg_sampler_type = extern enum(c_int) {
     SG_SAMPLERTYPE_UINT,
     _,
 };
+pub const _SG_SAMPLERTYPE_DEFAULT = @enumToInt(enum_sg_sampler_type._SG_SAMPLERTYPE_DEFAULT);
+pub const SG_SAMPLERTYPE_FLOAT = @enumToInt(enum_sg_sampler_type.SG_SAMPLERTYPE_FLOAT);
+pub const SG_SAMPLERTYPE_SINT = @enumToInt(enum_sg_sampler_type.SG_SAMPLERTYPE_SINT);
+pub const SG_SAMPLERTYPE_UINT = @enumToInt(enum_sg_sampler_type.SG_SAMPLERTYPE_UINT);
 pub const sg_sampler_type = enum_sg_sampler_type;
-pub const SG_CUBEFACE_POS_X = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_POS_X);
-pub const SG_CUBEFACE_NEG_X = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NEG_X);
-pub const SG_CUBEFACE_POS_Y = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_POS_Y);
-pub const SG_CUBEFACE_NEG_Y = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NEG_Y);
-pub const SG_CUBEFACE_POS_Z = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_POS_Z);
-pub const SG_CUBEFACE_NEG_Z = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NEG_Z);
-pub const SG_CUBEFACE_NUM = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NUM);
-pub const _SG_CUBEFACE_FORCE_U32 = @enumToInt(enum_sg_cube_face._SG_CUBEFACE_FORCE_U32);
 pub const enum_sg_cube_face = extern enum(c_int) {
     SG_CUBEFACE_POS_X = 0,
     SG_CUBEFACE_NEG_X = 1,
@@ -411,25 +438,25 @@ pub const enum_sg_cube_face = extern enum(c_int) {
     _SG_CUBEFACE_FORCE_U32 = 2147483647,
     _,
 };
+pub const SG_CUBEFACE_POS_X = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_POS_X);
+pub const SG_CUBEFACE_NEG_X = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NEG_X);
+pub const SG_CUBEFACE_POS_Y = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_POS_Y);
+pub const SG_CUBEFACE_NEG_Y = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NEG_Y);
+pub const SG_CUBEFACE_POS_Z = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_POS_Z);
+pub const SG_CUBEFACE_NEG_Z = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NEG_Z);
+pub const SG_CUBEFACE_NUM = @enumToInt(enum_sg_cube_face.SG_CUBEFACE_NUM);
+pub const _SG_CUBEFACE_FORCE_U32 = @enumToInt(enum_sg_cube_face._SG_CUBEFACE_FORCE_U32);
 pub const sg_cube_face = enum_sg_cube_face;
-pub const SG_SHADERSTAGE_VS = @enumToInt(enum_sg_shader_stage.SG_SHADERSTAGE_VS);
-pub const SG_SHADERSTAGE_FS = @enumToInt(enum_sg_shader_stage.SG_SHADERSTAGE_FS);
-pub const _SG_SHADERSTAGE_FORCE_U32 = @enumToInt(enum_sg_shader_stage._SG_SHADERSTAGE_FORCE_U32);
 pub const enum_sg_shader_stage = extern enum(c_int) {
     SG_SHADERSTAGE_VS = 0,
     SG_SHADERSTAGE_FS = 1,
     _SG_SHADERSTAGE_FORCE_U32 = 2147483647,
     _,
 };
+pub const SG_SHADERSTAGE_VS = @enumToInt(enum_sg_shader_stage.SG_SHADERSTAGE_VS);
+pub const SG_SHADERSTAGE_FS = @enumToInt(enum_sg_shader_stage.SG_SHADERSTAGE_FS);
+pub const _SG_SHADERSTAGE_FORCE_U32 = @enumToInt(enum_sg_shader_stage._SG_SHADERSTAGE_FORCE_U32);
 pub const sg_shader_stage = enum_sg_shader_stage;
-pub const _SG_PRIMITIVETYPE_DEFAULT = @enumToInt(enum_sg_primitive_type._SG_PRIMITIVETYPE_DEFAULT);
-pub const SG_PRIMITIVETYPE_POINTS = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_POINTS);
-pub const SG_PRIMITIVETYPE_LINES = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_LINES);
-pub const SG_PRIMITIVETYPE_LINE_STRIP = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_LINE_STRIP);
-pub const SG_PRIMITIVETYPE_TRIANGLES = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_TRIANGLES);
-pub const SG_PRIMITIVETYPE_TRIANGLE_STRIP = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_TRIANGLE_STRIP);
-pub const _SG_PRIMITIVETYPE_NUM = @enumToInt(enum_sg_primitive_type._SG_PRIMITIVETYPE_NUM);
-pub const _SG_PRIMITIVETYPE_FORCE_U32 = @enumToInt(enum_sg_primitive_type._SG_PRIMITIVETYPE_FORCE_U32);
 pub const enum_sg_primitive_type = extern enum(c_int) {
     _SG_PRIMITIVETYPE_DEFAULT = 0,
     SG_PRIMITIVETYPE_POINTS = 1,
@@ -441,16 +468,15 @@ pub const enum_sg_primitive_type = extern enum(c_int) {
     _SG_PRIMITIVETYPE_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_PRIMITIVETYPE_DEFAULT = @enumToInt(enum_sg_primitive_type._SG_PRIMITIVETYPE_DEFAULT);
+pub const SG_PRIMITIVETYPE_POINTS = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_POINTS);
+pub const SG_PRIMITIVETYPE_LINES = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_LINES);
+pub const SG_PRIMITIVETYPE_LINE_STRIP = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_LINE_STRIP);
+pub const SG_PRIMITIVETYPE_TRIANGLES = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_TRIANGLES);
+pub const SG_PRIMITIVETYPE_TRIANGLE_STRIP = @enumToInt(enum_sg_primitive_type.SG_PRIMITIVETYPE_TRIANGLE_STRIP);
+pub const _SG_PRIMITIVETYPE_NUM = @enumToInt(enum_sg_primitive_type._SG_PRIMITIVETYPE_NUM);
+pub const _SG_PRIMITIVETYPE_FORCE_U32 = @enumToInt(enum_sg_primitive_type._SG_PRIMITIVETYPE_FORCE_U32);
 pub const sg_primitive_type = enum_sg_primitive_type;
-pub const _SG_FILTER_DEFAULT = @enumToInt(enum_sg_filter._SG_FILTER_DEFAULT);
-pub const SG_FILTER_NEAREST = @enumToInt(enum_sg_filter.SG_FILTER_NEAREST);
-pub const SG_FILTER_LINEAR = @enumToInt(enum_sg_filter.SG_FILTER_LINEAR);
-pub const SG_FILTER_NEAREST_MIPMAP_NEAREST = @enumToInt(enum_sg_filter.SG_FILTER_NEAREST_MIPMAP_NEAREST);
-pub const SG_FILTER_NEAREST_MIPMAP_LINEAR = @enumToInt(enum_sg_filter.SG_FILTER_NEAREST_MIPMAP_LINEAR);
-pub const SG_FILTER_LINEAR_MIPMAP_NEAREST = @enumToInt(enum_sg_filter.SG_FILTER_LINEAR_MIPMAP_NEAREST);
-pub const SG_FILTER_LINEAR_MIPMAP_LINEAR = @enumToInt(enum_sg_filter.SG_FILTER_LINEAR_MIPMAP_LINEAR);
-pub const _SG_FILTER_NUM = @enumToInt(enum_sg_filter._SG_FILTER_NUM);
-pub const _SG_FILTER_FORCE_U32 = @enumToInt(enum_sg_filter._SG_FILTER_FORCE_U32);
 pub const enum_sg_filter = extern enum(c_int) {
     _SG_FILTER_DEFAULT = 0,
     SG_FILTER_NEAREST = 1,
@@ -463,14 +489,16 @@ pub const enum_sg_filter = extern enum(c_int) {
     _SG_FILTER_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_FILTER_DEFAULT = @enumToInt(enum_sg_filter._SG_FILTER_DEFAULT);
+pub const SG_FILTER_NEAREST = @enumToInt(enum_sg_filter.SG_FILTER_NEAREST);
+pub const SG_FILTER_LINEAR = @enumToInt(enum_sg_filter.SG_FILTER_LINEAR);
+pub const SG_FILTER_NEAREST_MIPMAP_NEAREST = @enumToInt(enum_sg_filter.SG_FILTER_NEAREST_MIPMAP_NEAREST);
+pub const SG_FILTER_NEAREST_MIPMAP_LINEAR = @enumToInt(enum_sg_filter.SG_FILTER_NEAREST_MIPMAP_LINEAR);
+pub const SG_FILTER_LINEAR_MIPMAP_NEAREST = @enumToInt(enum_sg_filter.SG_FILTER_LINEAR_MIPMAP_NEAREST);
+pub const SG_FILTER_LINEAR_MIPMAP_LINEAR = @enumToInt(enum_sg_filter.SG_FILTER_LINEAR_MIPMAP_LINEAR);
+pub const _SG_FILTER_NUM = @enumToInt(enum_sg_filter._SG_FILTER_NUM);
+pub const _SG_FILTER_FORCE_U32 = @enumToInt(enum_sg_filter._SG_FILTER_FORCE_U32);
 pub const sg_filter = enum_sg_filter;
-pub const _SG_WRAP_DEFAULT = @enumToInt(enum_sg_wrap._SG_WRAP_DEFAULT);
-pub const SG_WRAP_REPEAT = @enumToInt(enum_sg_wrap.SG_WRAP_REPEAT);
-pub const SG_WRAP_CLAMP_TO_EDGE = @enumToInt(enum_sg_wrap.SG_WRAP_CLAMP_TO_EDGE);
-pub const SG_WRAP_CLAMP_TO_BORDER = @enumToInt(enum_sg_wrap.SG_WRAP_CLAMP_TO_BORDER);
-pub const SG_WRAP_MIRRORED_REPEAT = @enumToInt(enum_sg_wrap.SG_WRAP_MIRRORED_REPEAT);
-pub const _SG_WRAP_NUM = @enumToInt(enum_sg_wrap._SG_WRAP_NUM);
-pub const _SG_WRAP_FORCE_U32 = @enumToInt(enum_sg_wrap._SG_WRAP_FORCE_U32);
 pub const enum_sg_wrap = extern enum(c_int) {
     _SG_WRAP_DEFAULT = 0,
     SG_WRAP_REPEAT = 1,
@@ -481,13 +509,14 @@ pub const enum_sg_wrap = extern enum(c_int) {
     _SG_WRAP_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_WRAP_DEFAULT = @enumToInt(enum_sg_wrap._SG_WRAP_DEFAULT);
+pub const SG_WRAP_REPEAT = @enumToInt(enum_sg_wrap.SG_WRAP_REPEAT);
+pub const SG_WRAP_CLAMP_TO_EDGE = @enumToInt(enum_sg_wrap.SG_WRAP_CLAMP_TO_EDGE);
+pub const SG_WRAP_CLAMP_TO_BORDER = @enumToInt(enum_sg_wrap.SG_WRAP_CLAMP_TO_BORDER);
+pub const SG_WRAP_MIRRORED_REPEAT = @enumToInt(enum_sg_wrap.SG_WRAP_MIRRORED_REPEAT);
+pub const _SG_WRAP_NUM = @enumToInt(enum_sg_wrap._SG_WRAP_NUM);
+pub const _SG_WRAP_FORCE_U32 = @enumToInt(enum_sg_wrap._SG_WRAP_FORCE_U32);
 pub const sg_wrap = enum_sg_wrap;
-pub const _SG_BORDERCOLOR_DEFAULT = @enumToInt(enum_sg_border_color._SG_BORDERCOLOR_DEFAULT);
-pub const SG_BORDERCOLOR_TRANSPARENT_BLACK = @enumToInt(enum_sg_border_color.SG_BORDERCOLOR_TRANSPARENT_BLACK);
-pub const SG_BORDERCOLOR_OPAQUE_BLACK = @enumToInt(enum_sg_border_color.SG_BORDERCOLOR_OPAQUE_BLACK);
-pub const SG_BORDERCOLOR_OPAQUE_WHITE = @enumToInt(enum_sg_border_color.SG_BORDERCOLOR_OPAQUE_WHITE);
-pub const _SG_BORDERCOLOR_NUM = @enumToInt(enum_sg_border_color._SG_BORDERCOLOR_NUM);
-pub const _SG_BORDERCOLOR_FORCE_U32 = @enumToInt(enum_sg_border_color._SG_BORDERCOLOR_FORCE_U32);
 pub const enum_sg_border_color = extern enum(c_int) {
     _SG_BORDERCOLOR_DEFAULT = 0,
     SG_BORDERCOLOR_TRANSPARENT_BLACK = 1,
@@ -497,25 +526,13 @@ pub const enum_sg_border_color = extern enum(c_int) {
     _SG_BORDERCOLOR_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_BORDERCOLOR_DEFAULT = @enumToInt(enum_sg_border_color._SG_BORDERCOLOR_DEFAULT);
+pub const SG_BORDERCOLOR_TRANSPARENT_BLACK = @enumToInt(enum_sg_border_color.SG_BORDERCOLOR_TRANSPARENT_BLACK);
+pub const SG_BORDERCOLOR_OPAQUE_BLACK = @enumToInt(enum_sg_border_color.SG_BORDERCOLOR_OPAQUE_BLACK);
+pub const SG_BORDERCOLOR_OPAQUE_WHITE = @enumToInt(enum_sg_border_color.SG_BORDERCOLOR_OPAQUE_WHITE);
+pub const _SG_BORDERCOLOR_NUM = @enumToInt(enum_sg_border_color._SG_BORDERCOLOR_NUM);
+pub const _SG_BORDERCOLOR_FORCE_U32 = @enumToInt(enum_sg_border_color._SG_BORDERCOLOR_FORCE_U32);
 pub const sg_border_color = enum_sg_border_color;
-pub const SG_VERTEXFORMAT_INVALID = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_INVALID);
-pub const SG_VERTEXFORMAT_FLOAT = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT);
-pub const SG_VERTEXFORMAT_FLOAT2 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT2);
-pub const SG_VERTEXFORMAT_FLOAT3 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT3);
-pub const SG_VERTEXFORMAT_FLOAT4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT4);
-pub const SG_VERTEXFORMAT_BYTE4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_BYTE4);
-pub const SG_VERTEXFORMAT_BYTE4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_BYTE4N);
-pub const SG_VERTEXFORMAT_UBYTE4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_UBYTE4);
-pub const SG_VERTEXFORMAT_UBYTE4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_UBYTE4N);
-pub const SG_VERTEXFORMAT_SHORT2 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT2);
-pub const SG_VERTEXFORMAT_SHORT2N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT2N);
-pub const SG_VERTEXFORMAT_USHORT2N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_USHORT2N);
-pub const SG_VERTEXFORMAT_SHORT4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT4);
-pub const SG_VERTEXFORMAT_SHORT4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT4N);
-pub const SG_VERTEXFORMAT_USHORT4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_USHORT4N);
-pub const SG_VERTEXFORMAT_UINT10_N2 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_UINT10_N2);
-pub const _SG_VERTEXFORMAT_NUM = @enumToInt(enum_sg_vertex_format._SG_VERTEXFORMAT_NUM);
-pub const _SG_VERTEXFORMAT_FORCE_U32 = @enumToInt(enum_sg_vertex_format._SG_VERTEXFORMAT_FORCE_U32);
 pub const enum_sg_vertex_format = extern enum(c_int) {
     SG_VERTEXFORMAT_INVALID = 0,
     SG_VERTEXFORMAT_FLOAT = 1,
@@ -537,12 +554,25 @@ pub const enum_sg_vertex_format = extern enum(c_int) {
     _SG_VERTEXFORMAT_FORCE_U32 = 2147483647,
     _,
 };
+pub const SG_VERTEXFORMAT_INVALID = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_INVALID);
+pub const SG_VERTEXFORMAT_FLOAT = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT);
+pub const SG_VERTEXFORMAT_FLOAT2 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT2);
+pub const SG_VERTEXFORMAT_FLOAT3 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT3);
+pub const SG_VERTEXFORMAT_FLOAT4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_FLOAT4);
+pub const SG_VERTEXFORMAT_BYTE4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_BYTE4);
+pub const SG_VERTEXFORMAT_BYTE4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_BYTE4N);
+pub const SG_VERTEXFORMAT_UBYTE4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_UBYTE4);
+pub const SG_VERTEXFORMAT_UBYTE4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_UBYTE4N);
+pub const SG_VERTEXFORMAT_SHORT2 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT2);
+pub const SG_VERTEXFORMAT_SHORT2N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT2N);
+pub const SG_VERTEXFORMAT_USHORT2N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_USHORT2N);
+pub const SG_VERTEXFORMAT_SHORT4 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT4);
+pub const SG_VERTEXFORMAT_SHORT4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_SHORT4N);
+pub const SG_VERTEXFORMAT_USHORT4N = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_USHORT4N);
+pub const SG_VERTEXFORMAT_UINT10_N2 = @enumToInt(enum_sg_vertex_format.SG_VERTEXFORMAT_UINT10_N2);
+pub const _SG_VERTEXFORMAT_NUM = @enumToInt(enum_sg_vertex_format._SG_VERTEXFORMAT_NUM);
+pub const _SG_VERTEXFORMAT_FORCE_U32 = @enumToInt(enum_sg_vertex_format._SG_VERTEXFORMAT_FORCE_U32);
 pub const sg_vertex_format = enum_sg_vertex_format;
-pub const _SG_VERTEXSTEP_DEFAULT = @enumToInt(enum_sg_vertex_step._SG_VERTEXSTEP_DEFAULT);
-pub const SG_VERTEXSTEP_PER_VERTEX = @enumToInt(enum_sg_vertex_step.SG_VERTEXSTEP_PER_VERTEX);
-pub const SG_VERTEXSTEP_PER_INSTANCE = @enumToInt(enum_sg_vertex_step.SG_VERTEXSTEP_PER_INSTANCE);
-pub const _SG_VERTEXSTEP_NUM = @enumToInt(enum_sg_vertex_step._SG_VERTEXSTEP_NUM);
-pub const _SG_VERTEXSTEP_FORCE_U32 = @enumToInt(enum_sg_vertex_step._SG_VERTEXSTEP_FORCE_U32);
 pub const enum_sg_vertex_step = extern enum(c_int) {
     _SG_VERTEXSTEP_DEFAULT = 0,
     SG_VERTEXSTEP_PER_VERTEX = 1,
@@ -551,15 +581,12 @@ pub const enum_sg_vertex_step = extern enum(c_int) {
     _SG_VERTEXSTEP_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_VERTEXSTEP_DEFAULT = @enumToInt(enum_sg_vertex_step._SG_VERTEXSTEP_DEFAULT);
+pub const SG_VERTEXSTEP_PER_VERTEX = @enumToInt(enum_sg_vertex_step.SG_VERTEXSTEP_PER_VERTEX);
+pub const SG_VERTEXSTEP_PER_INSTANCE = @enumToInt(enum_sg_vertex_step.SG_VERTEXSTEP_PER_INSTANCE);
+pub const _SG_VERTEXSTEP_NUM = @enumToInt(enum_sg_vertex_step._SG_VERTEXSTEP_NUM);
+pub const _SG_VERTEXSTEP_FORCE_U32 = @enumToInt(enum_sg_vertex_step._SG_VERTEXSTEP_FORCE_U32);
 pub const sg_vertex_step = enum_sg_vertex_step;
-pub const SG_UNIFORMTYPE_INVALID = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_INVALID);
-pub const SG_UNIFORMTYPE_FLOAT = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT);
-pub const SG_UNIFORMTYPE_FLOAT2 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT2);
-pub const SG_UNIFORMTYPE_FLOAT3 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT3);
-pub const SG_UNIFORMTYPE_FLOAT4 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT4);
-pub const SG_UNIFORMTYPE_MAT4 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_MAT4);
-pub const _SG_UNIFORMTYPE_NUM = @enumToInt(enum_sg_uniform_type._SG_UNIFORMTYPE_NUM);
-pub const _SG_UNIFORMTYPE_FORCE_U32 = @enumToInt(enum_sg_uniform_type._SG_UNIFORMTYPE_FORCE_U32);
 pub const enum_sg_uniform_type = extern enum(c_int) {
     SG_UNIFORMTYPE_INVALID = 0,
     SG_UNIFORMTYPE_FLOAT = 1,
@@ -571,13 +598,15 @@ pub const enum_sg_uniform_type = extern enum(c_int) {
     _SG_UNIFORMTYPE_FORCE_U32 = 2147483647,
     _,
 };
+pub const SG_UNIFORMTYPE_INVALID = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_INVALID);
+pub const SG_UNIFORMTYPE_FLOAT = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT);
+pub const SG_UNIFORMTYPE_FLOAT2 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT2);
+pub const SG_UNIFORMTYPE_FLOAT3 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT3);
+pub const SG_UNIFORMTYPE_FLOAT4 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_FLOAT4);
+pub const SG_UNIFORMTYPE_MAT4 = @enumToInt(enum_sg_uniform_type.SG_UNIFORMTYPE_MAT4);
+pub const _SG_UNIFORMTYPE_NUM = @enumToInt(enum_sg_uniform_type._SG_UNIFORMTYPE_NUM);
+pub const _SG_UNIFORMTYPE_FORCE_U32 = @enumToInt(enum_sg_uniform_type._SG_UNIFORMTYPE_FORCE_U32);
 pub const sg_uniform_type = enum_sg_uniform_type;
-pub const _SG_CULLMODE_DEFAULT = @enumToInt(enum_sg_cull_mode._SG_CULLMODE_DEFAULT);
-pub const SG_CULLMODE_NONE = @enumToInt(enum_sg_cull_mode.SG_CULLMODE_NONE);
-pub const SG_CULLMODE_FRONT = @enumToInt(enum_sg_cull_mode.SG_CULLMODE_FRONT);
-pub const SG_CULLMODE_BACK = @enumToInt(enum_sg_cull_mode.SG_CULLMODE_BACK);
-pub const _SG_CULLMODE_NUM = @enumToInt(enum_sg_cull_mode._SG_CULLMODE_NUM);
-pub const _SG_CULLMODE_FORCE_U32 = @enumToInt(enum_sg_cull_mode._SG_CULLMODE_FORCE_U32);
 pub const enum_sg_cull_mode = extern enum(c_int) {
     _SG_CULLMODE_DEFAULT = 0,
     SG_CULLMODE_NONE = 1,
@@ -587,12 +616,13 @@ pub const enum_sg_cull_mode = extern enum(c_int) {
     _SG_CULLMODE_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_CULLMODE_DEFAULT = @enumToInt(enum_sg_cull_mode._SG_CULLMODE_DEFAULT);
+pub const SG_CULLMODE_NONE = @enumToInt(enum_sg_cull_mode.SG_CULLMODE_NONE);
+pub const SG_CULLMODE_FRONT = @enumToInt(enum_sg_cull_mode.SG_CULLMODE_FRONT);
+pub const SG_CULLMODE_BACK = @enumToInt(enum_sg_cull_mode.SG_CULLMODE_BACK);
+pub const _SG_CULLMODE_NUM = @enumToInt(enum_sg_cull_mode._SG_CULLMODE_NUM);
+pub const _SG_CULLMODE_FORCE_U32 = @enumToInt(enum_sg_cull_mode._SG_CULLMODE_FORCE_U32);
 pub const sg_cull_mode = enum_sg_cull_mode;
-pub const _SG_FACEWINDING_DEFAULT = @enumToInt(enum_sg_face_winding._SG_FACEWINDING_DEFAULT);
-pub const SG_FACEWINDING_CCW = @enumToInt(enum_sg_face_winding.SG_FACEWINDING_CCW);
-pub const SG_FACEWINDING_CW = @enumToInt(enum_sg_face_winding.SG_FACEWINDING_CW);
-pub const _SG_FACEWINDING_NUM = @enumToInt(enum_sg_face_winding._SG_FACEWINDING_NUM);
-pub const _SG_FACEWINDING_FORCE_U32 = @enumToInt(enum_sg_face_winding._SG_FACEWINDING_FORCE_U32);
 pub const enum_sg_face_winding = extern enum(c_int) {
     _SG_FACEWINDING_DEFAULT = 0,
     SG_FACEWINDING_CCW = 1,
@@ -601,18 +631,12 @@ pub const enum_sg_face_winding = extern enum(c_int) {
     _SG_FACEWINDING_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_FACEWINDING_DEFAULT = @enumToInt(enum_sg_face_winding._SG_FACEWINDING_DEFAULT);
+pub const SG_FACEWINDING_CCW = @enumToInt(enum_sg_face_winding.SG_FACEWINDING_CCW);
+pub const SG_FACEWINDING_CW = @enumToInt(enum_sg_face_winding.SG_FACEWINDING_CW);
+pub const _SG_FACEWINDING_NUM = @enumToInt(enum_sg_face_winding._SG_FACEWINDING_NUM);
+pub const _SG_FACEWINDING_FORCE_U32 = @enumToInt(enum_sg_face_winding._SG_FACEWINDING_FORCE_U32);
 pub const sg_face_winding = enum_sg_face_winding;
-pub const _SG_COMPAREFUNC_DEFAULT = @enumToInt(enum_sg_compare_func._SG_COMPAREFUNC_DEFAULT);
-pub const SG_COMPAREFUNC_NEVER = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_NEVER);
-pub const SG_COMPAREFUNC_LESS = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_LESS);
-pub const SG_COMPAREFUNC_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_EQUAL);
-pub const SG_COMPAREFUNC_LESS_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_LESS_EQUAL);
-pub const SG_COMPAREFUNC_GREATER = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_GREATER);
-pub const SG_COMPAREFUNC_NOT_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_NOT_EQUAL);
-pub const SG_COMPAREFUNC_GREATER_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_GREATER_EQUAL);
-pub const SG_COMPAREFUNC_ALWAYS = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_ALWAYS);
-pub const _SG_COMPAREFUNC_NUM = @enumToInt(enum_sg_compare_func._SG_COMPAREFUNC_NUM);
-pub const _SG_COMPAREFUNC_FORCE_U32 = @enumToInt(enum_sg_compare_func._SG_COMPAREFUNC_FORCE_U32);
 pub const enum_sg_compare_func = extern enum(c_int) {
     _SG_COMPAREFUNC_DEFAULT = 0,
     SG_COMPAREFUNC_NEVER = 1,
@@ -627,18 +651,18 @@ pub const enum_sg_compare_func = extern enum(c_int) {
     _SG_COMPAREFUNC_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_COMPAREFUNC_DEFAULT = @enumToInt(enum_sg_compare_func._SG_COMPAREFUNC_DEFAULT);
+pub const SG_COMPAREFUNC_NEVER = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_NEVER);
+pub const SG_COMPAREFUNC_LESS = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_LESS);
+pub const SG_COMPAREFUNC_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_EQUAL);
+pub const SG_COMPAREFUNC_LESS_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_LESS_EQUAL);
+pub const SG_COMPAREFUNC_GREATER = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_GREATER);
+pub const SG_COMPAREFUNC_NOT_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_NOT_EQUAL);
+pub const SG_COMPAREFUNC_GREATER_EQUAL = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_GREATER_EQUAL);
+pub const SG_COMPAREFUNC_ALWAYS = @enumToInt(enum_sg_compare_func.SG_COMPAREFUNC_ALWAYS);
+pub const _SG_COMPAREFUNC_NUM = @enumToInt(enum_sg_compare_func._SG_COMPAREFUNC_NUM);
+pub const _SG_COMPAREFUNC_FORCE_U32 = @enumToInt(enum_sg_compare_func._SG_COMPAREFUNC_FORCE_U32);
 pub const sg_compare_func = enum_sg_compare_func;
-pub const _SG_STENCILOP_DEFAULT = @enumToInt(enum_sg_stencil_op._SG_STENCILOP_DEFAULT);
-pub const SG_STENCILOP_KEEP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_KEEP);
-pub const SG_STENCILOP_ZERO = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_ZERO);
-pub const SG_STENCILOP_REPLACE = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_REPLACE);
-pub const SG_STENCILOP_INCR_CLAMP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_INCR_CLAMP);
-pub const SG_STENCILOP_DECR_CLAMP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_DECR_CLAMP);
-pub const SG_STENCILOP_INVERT = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_INVERT);
-pub const SG_STENCILOP_INCR_WRAP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_INCR_WRAP);
-pub const SG_STENCILOP_DECR_WRAP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_DECR_WRAP);
-pub const _SG_STENCILOP_NUM = @enumToInt(enum_sg_stencil_op._SG_STENCILOP_NUM);
-pub const _SG_STENCILOP_FORCE_U32 = @enumToInt(enum_sg_stencil_op._SG_STENCILOP_FORCE_U32);
 pub const enum_sg_stencil_op = extern enum(c_int) {
     _SG_STENCILOP_DEFAULT = 0,
     SG_STENCILOP_KEEP = 1,
@@ -653,25 +677,18 @@ pub const enum_sg_stencil_op = extern enum(c_int) {
     _SG_STENCILOP_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_STENCILOP_DEFAULT = @enumToInt(enum_sg_stencil_op._SG_STENCILOP_DEFAULT);
+pub const SG_STENCILOP_KEEP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_KEEP);
+pub const SG_STENCILOP_ZERO = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_ZERO);
+pub const SG_STENCILOP_REPLACE = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_REPLACE);
+pub const SG_STENCILOP_INCR_CLAMP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_INCR_CLAMP);
+pub const SG_STENCILOP_DECR_CLAMP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_DECR_CLAMP);
+pub const SG_STENCILOP_INVERT = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_INVERT);
+pub const SG_STENCILOP_INCR_WRAP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_INCR_WRAP);
+pub const SG_STENCILOP_DECR_WRAP = @enumToInt(enum_sg_stencil_op.SG_STENCILOP_DECR_WRAP);
+pub const _SG_STENCILOP_NUM = @enumToInt(enum_sg_stencil_op._SG_STENCILOP_NUM);
+pub const _SG_STENCILOP_FORCE_U32 = @enumToInt(enum_sg_stencil_op._SG_STENCILOP_FORCE_U32);
 pub const sg_stencil_op = enum_sg_stencil_op;
-pub const _SG_BLENDFACTOR_DEFAULT = @enumToInt(enum_sg_blend_factor._SG_BLENDFACTOR_DEFAULT);
-pub const SG_BLENDFACTOR_ZERO = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ZERO);
-pub const SG_BLENDFACTOR_ONE = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE);
-pub const SG_BLENDFACTOR_SRC_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_SRC_COLOR);
-pub const SG_BLENDFACTOR_ONE_MINUS_SRC_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_SRC_COLOR);
-pub const SG_BLENDFACTOR_SRC_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_SRC_ALPHA);
-pub const SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA);
-pub const SG_BLENDFACTOR_DST_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_DST_COLOR);
-pub const SG_BLENDFACTOR_ONE_MINUS_DST_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_DST_COLOR);
-pub const SG_BLENDFACTOR_DST_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_DST_ALPHA);
-pub const SG_BLENDFACTOR_ONE_MINUS_DST_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_DST_ALPHA);
-pub const SG_BLENDFACTOR_SRC_ALPHA_SATURATED = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_SRC_ALPHA_SATURATED);
-pub const SG_BLENDFACTOR_BLEND_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_BLEND_COLOR);
-pub const SG_BLENDFACTOR_ONE_MINUS_BLEND_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_BLEND_COLOR);
-pub const SG_BLENDFACTOR_BLEND_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_BLEND_ALPHA);
-pub const SG_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA);
-pub const _SG_BLENDFACTOR_NUM = @enumToInt(enum_sg_blend_factor._SG_BLENDFACTOR_NUM);
-pub const _SG_BLENDFACTOR_FORCE_U32 = @enumToInt(enum_sg_blend_factor._SG_BLENDFACTOR_FORCE_U32);
 pub const enum_sg_blend_factor = extern enum(c_int) {
     _SG_BLENDFACTOR_DEFAULT = 0,
     SG_BLENDFACTOR_ZERO = 1,
@@ -693,13 +710,25 @@ pub const enum_sg_blend_factor = extern enum(c_int) {
     _SG_BLENDFACTOR_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_BLENDFACTOR_DEFAULT = @enumToInt(enum_sg_blend_factor._SG_BLENDFACTOR_DEFAULT);
+pub const SG_BLENDFACTOR_ZERO = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ZERO);
+pub const SG_BLENDFACTOR_ONE = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE);
+pub const SG_BLENDFACTOR_SRC_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_SRC_COLOR);
+pub const SG_BLENDFACTOR_ONE_MINUS_SRC_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_SRC_COLOR);
+pub const SG_BLENDFACTOR_SRC_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_SRC_ALPHA);
+pub const SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA);
+pub const SG_BLENDFACTOR_DST_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_DST_COLOR);
+pub const SG_BLENDFACTOR_ONE_MINUS_DST_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_DST_COLOR);
+pub const SG_BLENDFACTOR_DST_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_DST_ALPHA);
+pub const SG_BLENDFACTOR_ONE_MINUS_DST_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_DST_ALPHA);
+pub const SG_BLENDFACTOR_SRC_ALPHA_SATURATED = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_SRC_ALPHA_SATURATED);
+pub const SG_BLENDFACTOR_BLEND_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_BLEND_COLOR);
+pub const SG_BLENDFACTOR_ONE_MINUS_BLEND_COLOR = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_BLEND_COLOR);
+pub const SG_BLENDFACTOR_BLEND_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_BLEND_ALPHA);
+pub const SG_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA = @enumToInt(enum_sg_blend_factor.SG_BLENDFACTOR_ONE_MINUS_BLEND_ALPHA);
+pub const _SG_BLENDFACTOR_NUM = @enumToInt(enum_sg_blend_factor._SG_BLENDFACTOR_NUM);
+pub const _SG_BLENDFACTOR_FORCE_U32 = @enumToInt(enum_sg_blend_factor._SG_BLENDFACTOR_FORCE_U32);
 pub const sg_blend_factor = enum_sg_blend_factor;
-pub const _SG_BLENDOP_DEFAULT = @enumToInt(enum_sg_blend_op._SG_BLENDOP_DEFAULT);
-pub const SG_BLENDOP_ADD = @enumToInt(enum_sg_blend_op.SG_BLENDOP_ADD);
-pub const SG_BLENDOP_SUBTRACT = @enumToInt(enum_sg_blend_op.SG_BLENDOP_SUBTRACT);
-pub const SG_BLENDOP_REVERSE_SUBTRACT = @enumToInt(enum_sg_blend_op.SG_BLENDOP_REVERSE_SUBTRACT);
-pub const _SG_BLENDOP_NUM = @enumToInt(enum_sg_blend_op._SG_BLENDOP_NUM);
-pub const _SG_BLENDOP_FORCE_U32 = @enumToInt(enum_sg_blend_op._SG_BLENDOP_FORCE_U32);
 pub const enum_sg_blend_op = extern enum(c_int) {
     _SG_BLENDOP_DEFAULT = 0,
     SG_BLENDOP_ADD = 1,
@@ -709,35 +738,53 @@ pub const enum_sg_blend_op = extern enum(c_int) {
     _SG_BLENDOP_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_BLENDOP_DEFAULT = @enumToInt(enum_sg_blend_op._SG_BLENDOP_DEFAULT);
+pub const SG_BLENDOP_ADD = @enumToInt(enum_sg_blend_op.SG_BLENDOP_ADD);
+pub const SG_BLENDOP_SUBTRACT = @enumToInt(enum_sg_blend_op.SG_BLENDOP_SUBTRACT);
+pub const SG_BLENDOP_REVERSE_SUBTRACT = @enumToInt(enum_sg_blend_op.SG_BLENDOP_REVERSE_SUBTRACT);
+pub const _SG_BLENDOP_NUM = @enumToInt(enum_sg_blend_op._SG_BLENDOP_NUM);
+pub const _SG_BLENDOP_FORCE_U32 = @enumToInt(enum_sg_blend_op._SG_BLENDOP_FORCE_U32);
 pub const sg_blend_op = enum_sg_blend_op;
-pub const _SG_COLORMASK_DEFAULT = @enumToInt(enum_sg_color_mask._SG_COLORMASK_DEFAULT);
-pub const SG_COLORMASK_NONE = @enumToInt(enum_sg_color_mask.SG_COLORMASK_NONE);
-pub const SG_COLORMASK_R = @enumToInt(enum_sg_color_mask.SG_COLORMASK_R);
-pub const SG_COLORMASK_G = @enumToInt(enum_sg_color_mask.SG_COLORMASK_G);
-pub const SG_COLORMASK_B = @enumToInt(enum_sg_color_mask.SG_COLORMASK_B);
-pub const SG_COLORMASK_A = @enumToInt(enum_sg_color_mask.SG_COLORMASK_A);
-pub const SG_COLORMASK_RGB = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RGB);
-pub const SG_COLORMASK_RGBA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RGBA);
-pub const _SG_COLORMASK_FORCE_U32 = @enumToInt(enum_sg_color_mask._SG_COLORMASK_FORCE_U32);
 pub const enum_sg_color_mask = extern enum(c_int) {
     _SG_COLORMASK_DEFAULT = 0,
     SG_COLORMASK_NONE = 16,
     SG_COLORMASK_R = 1,
     SG_COLORMASK_G = 2,
+    SG_COLORMASK_RG = 3,
     SG_COLORMASK_B = 4,
-    SG_COLORMASK_A = 8,
+    SG_COLORMASK_RB = 5,
+    SG_COLORMASK_GB = 6,
     SG_COLORMASK_RGB = 7,
+    SG_COLORMASK_A = 8,
+    SG_COLORMASK_RA = 9,
+    SG_COLORMASK_GA = 10,
+    SG_COLORMASK_RGA = 11,
+    SG_COLORMASK_BA = 12,
+    SG_COLORMASK_RBA = 13,
+    SG_COLORMASK_GBA = 14,
     SG_COLORMASK_RGBA = 15,
     _SG_COLORMASK_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_COLORMASK_DEFAULT = @enumToInt(enum_sg_color_mask._SG_COLORMASK_DEFAULT);
+pub const SG_COLORMASK_NONE = @enumToInt(enum_sg_color_mask.SG_COLORMASK_NONE);
+pub const SG_COLORMASK_R = @enumToInt(enum_sg_color_mask.SG_COLORMASK_R);
+pub const SG_COLORMASK_G = @enumToInt(enum_sg_color_mask.SG_COLORMASK_G);
+pub const SG_COLORMASK_RG = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RG);
+pub const SG_COLORMASK_B = @enumToInt(enum_sg_color_mask.SG_COLORMASK_B);
+pub const SG_COLORMASK_RB = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RB);
+pub const SG_COLORMASK_GB = @enumToInt(enum_sg_color_mask.SG_COLORMASK_GB);
+pub const SG_COLORMASK_RGB = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RGB);
+pub const SG_COLORMASK_A = @enumToInt(enum_sg_color_mask.SG_COLORMASK_A);
+pub const SG_COLORMASK_RA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RA);
+pub const SG_COLORMASK_GA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_GA);
+pub const SG_COLORMASK_RGA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RGA);
+pub const SG_COLORMASK_BA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_BA);
+pub const SG_COLORMASK_RBA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RBA);
+pub const SG_COLORMASK_GBA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_GBA);
+pub const SG_COLORMASK_RGBA = @enumToInt(enum_sg_color_mask.SG_COLORMASK_RGBA);
+pub const _SG_COLORMASK_FORCE_U32 = @enumToInt(enum_sg_color_mask._SG_COLORMASK_FORCE_U32);
 pub const sg_color_mask = enum_sg_color_mask;
-pub const _SG_ACTION_DEFAULT = @enumToInt(enum_sg_action._SG_ACTION_DEFAULT);
-pub const SG_ACTION_CLEAR = @enumToInt(enum_sg_action.SG_ACTION_CLEAR);
-pub const SG_ACTION_LOAD = @enumToInt(enum_sg_action.SG_ACTION_LOAD);
-pub const SG_ACTION_DONTCARE = @enumToInt(enum_sg_action.SG_ACTION_DONTCARE);
-pub const _SG_ACTION_NUM = @enumToInt(enum_sg_action._SG_ACTION_NUM);
-pub const _SG_ACTION_FORCE_U32 = @enumToInt(enum_sg_action._SG_ACTION_FORCE_U32);
 pub const enum_sg_action = extern enum(c_int) {
     _SG_ACTION_DEFAULT = 0,
     SG_ACTION_CLEAR = 1,
@@ -747,20 +794,26 @@ pub const enum_sg_action = extern enum(c_int) {
     _SG_ACTION_FORCE_U32 = 2147483647,
     _,
 };
+pub const _SG_ACTION_DEFAULT = @enumToInt(enum_sg_action._SG_ACTION_DEFAULT);
+pub const SG_ACTION_CLEAR = @enumToInt(enum_sg_action.SG_ACTION_CLEAR);
+pub const SG_ACTION_LOAD = @enumToInt(enum_sg_action.SG_ACTION_LOAD);
+pub const SG_ACTION_DONTCARE = @enumToInt(enum_sg_action.SG_ACTION_DONTCARE);
+pub const _SG_ACTION_NUM = @enumToInt(enum_sg_action._SG_ACTION_NUM);
+pub const _SG_ACTION_FORCE_U32 = @enumToInt(enum_sg_action._SG_ACTION_FORCE_U32);
 pub const sg_action = enum_sg_action;
 pub const struct_sg_color_attachment_action = extern struct {
     action: sg_action,
-    val: [4]f32,
+    value: sg_color,
 };
 pub const sg_color_attachment_action = struct_sg_color_attachment_action;
 pub const struct_sg_depth_attachment_action = extern struct {
     action: sg_action,
-    val: f32,
+    value: f32,
 };
 pub const sg_depth_attachment_action = struct_sg_depth_attachment_action;
 pub const struct_sg_stencil_attachment_action = extern struct {
     action: sg_action,
-    val: u8,
+    value: u8,
 };
 pub const sg_stencil_attachment_action = struct_sg_stencil_attachment_action;
 pub const struct_sg_pass_action = extern struct {
@@ -784,10 +837,10 @@ pub const struct_sg_bindings = extern struct {
 pub const sg_bindings = struct_sg_bindings;
 pub const struct_sg_buffer_desc = extern struct {
     _start_canary: u32,
-    size: c_int,
+    size: usize,
     type: sg_buffer_type,
     usage: sg_usage,
-    content: ?*const c_void,
+    data: sg_range,
     label: [*c]const u8,
     gl_buffers: [2]u32,
     mtl_buffers: [2]?*const c_void,
@@ -796,26 +849,17 @@ pub const struct_sg_buffer_desc = extern struct {
     _end_canary: u32,
 };
 pub const sg_buffer_desc = struct_sg_buffer_desc;
-pub const struct_sg_subimage_content = extern struct {
-    ptr: ?*const c_void,
-    size: c_int,
+pub const struct_sg_image_data = extern struct {
+    subimage: [6][16]sg_range,
 };
-pub const sg_subimage_content = struct_sg_subimage_content;
-pub const struct_sg_image_content = extern struct {
-    subimage: [6][16]sg_subimage_content,
-};
-pub const sg_image_content = struct_sg_image_content;
-const union_unnamed_3 = extern union {
-    depth: c_int,
-    layers: c_int,
-};
+pub const sg_image_data = struct_sg_image_data;
 pub const struct_sg_image_desc = extern struct {
     _start_canary: u32,
     type: sg_image_type,
     render_target: bool,
     width: c_int,
     height: c_int,
-    unnamed_0: union_unnamed_3,
+    num_slices: c_int,
     num_mipmaps: c_int,
     usage: sg_usage,
     pixel_format: sg_pixel_format,
@@ -829,11 +873,13 @@ pub const struct_sg_image_desc = extern struct {
     max_anisotropy: u32,
     min_lod: f32,
     max_lod: f32,
-    content: sg_image_content,
+    data: sg_image_data,
     label: [*c]const u8,
     gl_textures: [2]u32,
+    gl_texture_target: u32,
     mtl_textures: [2]?*const c_void,
     d3d11_texture: ?*const c_void,
+    d3d11_shader_resource_view: ?*const c_void,
     wgpu_texture: ?*const c_void,
     _end_canary: u32,
 };
@@ -851,20 +897,19 @@ pub const struct_sg_shader_uniform_desc = extern struct {
 };
 pub const sg_shader_uniform_desc = struct_sg_shader_uniform_desc;
 pub const struct_sg_shader_uniform_block_desc = extern struct {
-    size: c_int,
+    size: usize,
     uniforms: [16]sg_shader_uniform_desc,
 };
 pub const sg_shader_uniform_block_desc = struct_sg_shader_uniform_block_desc;
 pub const struct_sg_shader_image_desc = extern struct {
     name: [*c]const u8,
-    type: sg_image_type,
+    image_type: sg_image_type,
     sampler_type: sg_sampler_type,
 };
 pub const sg_shader_image_desc = struct_sg_shader_image_desc;
 pub const struct_sg_shader_stage_desc = extern struct {
     source: [*c]const u8,
-    byte_code: [*c]const u8,
-    byte_code_size: c_int,
+    bytecode: sg_range,
     entry: [*c]const u8,
     d3d11_target: [*c]const u8,
     uniform_blocks: [4]sg_shader_uniform_block_desc,
@@ -897,24 +942,31 @@ pub const struct_sg_layout_desc = extern struct {
     attrs: [16]sg_vertex_attr_desc,
 };
 pub const sg_layout_desc = struct_sg_layout_desc;
-pub const struct_sg_stencil_state = extern struct {
+pub const struct_sg_stencil_face_state = extern struct {
+    compare: sg_compare_func,
     fail_op: sg_stencil_op,
     depth_fail_op: sg_stencil_op,
     pass_op: sg_stencil_op,
-    compare_func: sg_compare_func,
+};
+pub const sg_stencil_face_state = struct_sg_stencil_face_state;
+pub const struct_sg_stencil_state = extern struct {
+    enabled: bool,
+    front: sg_stencil_face_state,
+    back: sg_stencil_face_state,
+    read_mask: u8,
+    write_mask: u8,
+    ref: u8,
 };
 pub const sg_stencil_state = struct_sg_stencil_state;
-pub const struct_sg_depth_stencil_state = extern struct {
-    stencil_front: sg_stencil_state,
-    stencil_back: sg_stencil_state,
-    depth_compare_func: sg_compare_func,
-    depth_write_enabled: bool,
-    stencil_enabled: bool,
-    stencil_read_mask: u8,
-    stencil_write_mask: u8,
-    stencil_ref: u8,
+pub const struct_sg_depth_state = extern struct {
+    pixel_format: sg_pixel_format,
+    compare: sg_compare_func,
+    write_enabled: bool,
+    bias: f32,
+    bias_slope_scale: f32,
+    bias_clamp: f32,
 };
-pub const sg_depth_stencil_state = struct_sg_depth_stencil_state;
+pub const sg_depth_state = struct_sg_depth_state;
 pub const struct_sg_blend_state = extern struct {
     enabled: bool,
     src_factor_rgb: sg_blend_factor,
@@ -923,51 +975,43 @@ pub const struct_sg_blend_state = extern struct {
     src_factor_alpha: sg_blend_factor,
     dst_factor_alpha: sg_blend_factor,
     op_alpha: sg_blend_op,
-    color_write_mask: u8,
-    color_attachment_count: c_int,
-    color_format: sg_pixel_format,
-    depth_format: sg_pixel_format,
-    blend_color: [4]f32,
 };
 pub const sg_blend_state = struct_sg_blend_state;
-pub const struct_sg_rasterizer_state = extern struct {
-    alpha_to_coverage_enabled: bool,
+pub const struct_sg_color_state = extern struct {
+    pixel_format: sg_pixel_format,
+    write_mask: sg_color_mask,
+    blend: sg_blend_state,
+};
+pub const sg_color_state = struct_sg_color_state;
+pub const struct_sg_pipeline_desc = extern struct {
+    _start_canary: u32,
+    shader: sg_shader,
+    layout: sg_layout_desc,
+    depth: sg_depth_state,
+    stencil: sg_stencil_state,
+    color_count: c_int,
+    colors: [4]sg_color_state,
+    primitive_type: sg_primitive_type,
+    index_type: sg_index_type,
     cull_mode: sg_cull_mode,
     face_winding: sg_face_winding,
     sample_count: c_int,
-    depth_bias: f32,
-    depth_bias_slope_scale: f32,
-    depth_bias_clamp: f32,
-};
-pub const sg_rasterizer_state = struct_sg_rasterizer_state;
-pub const struct_sg_pipeline_desc = extern struct {
-    _start_canary: u32,
-    layout: sg_layout_desc,
-    shader: sg_shader,
-    primitive_type: sg_primitive_type,
-    index_type: sg_index_type,
-    depth_stencil: sg_depth_stencil_state,
-    blend: sg_blend_state,
-    rasterizer: sg_rasterizer_state,
+    blend_color: sg_color,
+    alpha_to_coverage_enabled: bool,
     label: [*c]const u8,
     _end_canary: u32,
 };
 pub const sg_pipeline_desc = struct_sg_pipeline_desc;
-const union_unnamed_4 = extern union {
-    face: c_int,
-    layer: c_int,
-    slice: c_int,
-};
-pub const struct_sg_attachment_desc = extern struct {
+pub const struct_sg_pass_attachment_desc = extern struct {
     image: sg_image,
     mip_level: c_int,
-    unnamed_0: union_unnamed_4,
+    slice: c_int,
 };
-pub const sg_attachment_desc = struct_sg_attachment_desc;
+pub const sg_pass_attachment_desc = struct_sg_pass_attachment_desc;
 pub const struct_sg_pass_desc = extern struct {
     _start_canary: u32,
-    color_attachments: [4]sg_attachment_desc,
-    depth_stencil_attachment: sg_attachment_desc,
+    color_attachments: [4]sg_pass_attachment_desc,
+    depth_stencil_attachment: sg_pass_attachment_desc,
     label: [*c]const u8,
     _end_canary: u32,
 };
@@ -985,16 +1029,16 @@ pub const struct_sg_trace_hooks = extern struct {
     destroy_shader: ?fn (sg_shader, ?*c_void) callconv(.C) void,
     destroy_pipeline: ?fn (sg_pipeline, ?*c_void) callconv(.C) void,
     destroy_pass: ?fn (sg_pass, ?*c_void) callconv(.C) void,
-    update_buffer: ?fn (sg_buffer, ?*const c_void, c_int, ?*c_void) callconv(.C) void,
-    update_image: ?fn (sg_image, [*c]const sg_image_content, ?*c_void) callconv(.C) void,
-    append_buffer: ?fn (sg_buffer, ?*const c_void, c_int, c_int, ?*c_void) callconv(.C) void,
+    update_buffer: ?fn (sg_buffer, [*c]const sg_range, ?*c_void) callconv(.C) void,
+    update_image: ?fn (sg_image, [*c]const sg_image_data, ?*c_void) callconv(.C) void,
+    append_buffer: ?fn (sg_buffer, [*c]const sg_range, c_int, ?*c_void) callconv(.C) void,
     begin_default_pass: ?fn ([*c]const sg_pass_action, c_int, c_int, ?*c_void) callconv(.C) void,
     begin_pass: ?fn (sg_pass, [*c]const sg_pass_action, ?*c_void) callconv(.C) void,
     apply_viewport: ?fn (c_int, c_int, c_int, c_int, bool, ?*c_void) callconv(.C) void,
     apply_scissor_rect: ?fn (c_int, c_int, c_int, c_int, bool, ?*c_void) callconv(.C) void,
     apply_pipeline: ?fn (sg_pipeline, ?*c_void) callconv(.C) void,
     apply_bindings: ?fn ([*c]const sg_bindings, ?*c_void) callconv(.C) void,
-    apply_uniforms: ?fn (sg_shader_stage, c_int, ?*const c_void, c_int, ?*c_void) callconv(.C) void,
+    apply_uniforms: ?fn (sg_shader_stage, c_int, [*c]const sg_range, ?*c_void) callconv(.C) void,
     draw: ?fn (c_int, c_int, c_int, ?*c_void) callconv(.C) void,
     end_pass: ?fn (?*c_void) callconv(.C) void,
     commit: ?fn (?*c_void) callconv(.C) void,
@@ -1003,11 +1047,21 @@ pub const struct_sg_trace_hooks = extern struct {
     alloc_shader: ?fn (sg_shader, ?*c_void) callconv(.C) void,
     alloc_pipeline: ?fn (sg_pipeline, ?*c_void) callconv(.C) void,
     alloc_pass: ?fn (sg_pass, ?*c_void) callconv(.C) void,
+    dealloc_buffer: ?fn (sg_buffer, ?*c_void) callconv(.C) void,
+    dealloc_image: ?fn (sg_image, ?*c_void) callconv(.C) void,
+    dealloc_shader: ?fn (sg_shader, ?*c_void) callconv(.C) void,
+    dealloc_pipeline: ?fn (sg_pipeline, ?*c_void) callconv(.C) void,
+    dealloc_pass: ?fn (sg_pass, ?*c_void) callconv(.C) void,
     init_buffer: ?fn (sg_buffer, [*c]const sg_buffer_desc, ?*c_void) callconv(.C) void,
     init_image: ?fn (sg_image, [*c]const sg_image_desc, ?*c_void) callconv(.C) void,
     init_shader: ?fn (sg_shader, [*c]const sg_shader_desc, ?*c_void) callconv(.C) void,
     init_pipeline: ?fn (sg_pipeline, [*c]const sg_pipeline_desc, ?*c_void) callconv(.C) void,
     init_pass: ?fn (sg_pass, [*c]const sg_pass_desc, ?*c_void) callconv(.C) void,
+    uninit_buffer: ?fn (sg_buffer, ?*c_void) callconv(.C) void,
+    uninit_image: ?fn (sg_image, ?*c_void) callconv(.C) void,
+    uninit_shader: ?fn (sg_shader, ?*c_void) callconv(.C) void,
+    uninit_pipeline: ?fn (sg_pipeline, ?*c_void) callconv(.C) void,
+    uninit_pass: ?fn (sg_pass, ?*c_void) callconv(.C) void,
     fail_buffer: ?fn (sg_buffer, ?*c_void) callconv(.C) void,
     fail_image: ?fn (sg_image, ?*c_void) callconv(.C) void,
     fail_shader: ?fn (sg_shader, ?*c_void) callconv(.C) void,
@@ -1067,24 +1121,34 @@ pub const struct_sg_gl_context_desc = extern struct {
     force_gles2: bool,
 };
 pub const sg_gl_context_desc = struct_sg_gl_context_desc;
-pub const struct_sg_mtl_context_desc = extern struct {
+pub const struct_sg_metal_context_desc = extern struct {
     device: ?*const c_void,
     renderpass_descriptor_cb: ?fn () callconv(.C) ?*const c_void,
+    renderpass_descriptor_userdata_cb: ?fn (?*c_void) callconv(.C) ?*const c_void,
     drawable_cb: ?fn () callconv(.C) ?*const c_void,
+    drawable_userdata_cb: ?fn (?*c_void) callconv(.C) ?*const c_void,
+    user_data: ?*c_void,
 };
-pub const sg_metal_context_desc = struct_sg_mtl_context_desc;
+pub const sg_metal_context_desc = struct_sg_metal_context_desc;
 pub const struct_sg_d3d11_context_desc = extern struct {
     device: ?*const c_void,
     device_context: ?*const c_void,
     render_target_view_cb: ?fn () callconv(.C) ?*const c_void,
+    render_target_view_userdata_cb: ?fn (?*c_void) callconv(.C) ?*const c_void,
     depth_stencil_view_cb: ?fn () callconv(.C) ?*const c_void,
+    depth_stencil_view_userdata_cb: ?fn (?*c_void) callconv(.C) ?*const c_void,
+    user_data: ?*c_void,
 };
 pub const sg_d3d11_context_desc = struct_sg_d3d11_context_desc;
 pub const struct_sg_wgpu_context_desc = extern struct {
     device: ?*const c_void,
     render_view_cb: ?fn () callconv(.C) ?*const c_void,
+    render_view_userdata_cb: ?fn (?*c_void) callconv(.C) ?*const c_void,
     resolve_view_cb: ?fn () callconv(.C) ?*const c_void,
+    resolve_view_userdata_cb: ?fn (?*c_void) callconv(.C) ?*const c_void,
     depth_stencil_view_cb: ?fn () callconv(.C) ?*const c_void,
+    depth_stencil_view_userdata_cb: ?fn (?*c_void) callconv(.C) ?*const c_void,
+    user_data: ?*c_void,
 };
 pub const sg_wgpu_context_desc = struct_sg_wgpu_context_desc;
 pub const struct_sg_context_desc = extern struct {

@@ -52,8 +52,8 @@ pub const Texture = extern struct {
         img_desc.wrap_v = .SG_WRAP_CLAMP_TO_EDGE;
         img_desc.min_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
         img_desc.mag_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
-        img_desc.content.subimage[0][0].ptr = pixels.ptr;
-        img_desc.content.subimage[0][0].size = width * height * 4 * @sizeOf(u8);
+        img_desc.data.subimage[0][0].ptr = pixels.ptr;
+        img_desc.data.subimage[0][0].size = @intCast(usize, width * height * 4 * @sizeOf(u8));
         img_desc.label = "upaya-texture";
 
         return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
@@ -68,9 +68,10 @@ pub const Texture = extern struct {
         img_desc.wrap_v = if (wrap == .clamp) .SG_WRAP_CLAMP_TO_EDGE else .SG_WRAP_REPEAT;
         img_desc.min_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
         img_desc.mag_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
-        img_desc.content.subimage[0][0].ptr = pixels.ptr;
-        img_desc.content.subimage[0][0].size = width * height * @sizeOf(u32);
+        img_desc.data.subimage[0][0].ptr = pixels.ptr;
+        img_desc.data.subimage[0][0].size = @intCast(usize, width * height * @sizeOf(u32));
         img_desc.label = "upaya-texture";
+
 
         return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
     }
