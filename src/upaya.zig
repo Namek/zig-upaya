@@ -48,6 +48,7 @@ pub const Config = struct {
     /// optionally adds FontAwesome fonts which are accessible via imgui.icons
     icon_font: bool = true,
     docking: bool = true,
+    docking_flags: imgui.ImGuiDockNodeFlags = imgui.ImGuiDockNodeFlags_None,
     dark_style: bool = false,
     /// how the imgui internal data should be stored. If saved_games_dir is used, app_name MUST be specified!
     ini_file_storage: enum { none, current_dir, saved_games_dir } = .current_dir,
@@ -80,19 +81,14 @@ pub fn run(config: Config) void {
     app_desc.window_title = config.window_title;
     app_desc.enable_clipboard = config.enable_clipboard;
     app_desc.clipboard_size = config.clipboard_size;
-    app_desc.fullscreen = config.fullscreen;
 
     if (state.config.onFileDropped == null) {
         app_desc.enable_dragndrop = false;
         app_desc.max_dropped_files = 0;
-    }
-    else {
-        app_desc.enable_dragndrop = true;
-    }
-
+    } else app_desc.enable_dragndrop = true;
 
     app_desc.alpha = false;
-    _ = sapp_run(&app_desc);
+    _ = sapp_run(&app_desc);   
 }
 
 // Event functions
@@ -127,6 +123,7 @@ export fn init() void {
         igStyleColorsDark(igGetStyle());
     }
 
+
     igGetStyle().FrameRounding = 0;
     igGetStyle().WindowRounding = 0;
 
@@ -136,6 +133,7 @@ export fn init() void {
     state.pass_action.colors[0].value = .{ .r = 0.15294117647, .g = 0.15686274510, .b = 0.18823529412, .a = 1 };
 
     state.config.init();
+    
 }
 
 export fn update() void {
@@ -222,7 +220,7 @@ fn beginDock() void {
         }
     }
 
-    ogDockSpace(dockspace_id, .{}, ImGuiDockNodeFlags_None, null);
+    ogDockSpace(dockspace_id, .{}, state.config.docking_flags, null);
 }
 
 fn loadDefaultFont() void {

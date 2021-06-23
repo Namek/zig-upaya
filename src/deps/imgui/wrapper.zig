@@ -137,11 +137,11 @@ pub fn ogOpenPopup(str_id: [*c]const u8) void {
     igOpenPopup(str_id, ImGuiPopupFlags_None);
 }
 
-pub fn ogColoredButton(color: ImU32, label: [:0]const u8) bool {
+pub fn ogColoredButton(color: ImU32, label: [*c]const u8) bool {
     return ogColoredButtonEx(color, label, .{});
 }
 
-pub fn ogColoredButtonEx(color: ImU32, label: [:0]const u8, size: ImVec2) bool {
+pub fn ogColoredButtonEx(color: ImU32, label: [*c]const u8, size: ImVec2) bool {
     igPushStyleColorU32(ImGuiCol_Button, color);
     defer igPopStyleColor(1);
     return ogButtonEx(label, size);
