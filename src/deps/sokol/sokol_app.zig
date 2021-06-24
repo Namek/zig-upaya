@@ -52,9 +52,6 @@ pub extern fn sapp_wgpu_get_resolve_view() ?*const c_void;
 pub extern fn sapp_wgpu_get_depth_stencil_view() ?*const c_void;
 pub extern fn sapp_android_get_native_activity() ?*const c_void;
 
-pub inline fn SAPP_RANGE(x: anytype) sapp_range {
-    return @import("std").mem.zeroInit(sapp_range, .{ &x, @import("std").meta.sizeof(x) });
-}
 const enum_unnamed_1 = extern enum(c_int) {
     SAPP_MAX_TOUCHPOINTS = 8,
     SAPP_MAX_MOUSEBUTTONS = 3,

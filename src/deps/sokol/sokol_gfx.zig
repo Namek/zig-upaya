@@ -83,12 +83,7 @@ pub extern fn sg_discard_context(ctx_id: sg_context) void;
 pub extern fn sg_d3d11_device() ?*const c_void;
 pub extern fn sg_mtl_device() ?*const c_void;
 pub extern fn sg_mtl_render_command_encoder() ?*const c_void;
-pub inline fn SG_RANGE(x: anytype) sg_range {
-    return @import("std").mem.zeroInit(sg_range, .{ &x, @import("std").meta.sizeof(x) });
-}
-pub inline fn SG_RANGE_REF(x: anytype) @TypeOf(&@import("std").mem.zeroInit(sg_range, .{ &x, @import("std").meta.sizeof(x) })) {
-    return &@import("std").mem.zeroInit(sg_range, .{ &x, @import("std").meta.sizeof(x) });
-}
+
 pub const struct_sg_buffer = extern struct {
     id: u32,
 };
