@@ -56,6 +56,7 @@ pub const Texture = extern struct {
         img_desc.data.subimage[0][0].size = @intCast(usize, width * height * 4 * @sizeOf(u8));
         img_desc.label = "upaya-texture";
 
+
         return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
     }
 
@@ -68,12 +69,20 @@ pub const Texture = extern struct {
         img_desc.wrap_v = if (wrap == .clamp) .SG_WRAP_CLAMP_TO_EDGE else .SG_WRAP_REPEAT;
         img_desc.min_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
         img_desc.mag_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
-        img_desc.data.subimage[0][0].ptr = pixels.ptr;
-        img_desc.data.subimage[0][0].size = @intCast(usize, width * height * @sizeOf(u32));
+        //img_desc.data.subimage[0][0].ptr = pixels.ptr;
+        //img_desc.data.subimage[0][0].size = @intCast(usize, width * height * @sizeOf(u32));
         img_desc.label = "upaya-texture";
+        img_desc.usage = .SG_USAGE_DYNAMIC;
 
+        var img = sg_make_image(&img_desc);
 
-        return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
+        var img_data: sg_image_data = std.mem.zeroes(sg_image_data);
+        img_data.subimage[0][0].ptr = pixels.ptr;
+        img_data.subimage[0][0].size = @intCast(usize, width * height * @sizeOf(u32));
+
+        sg_update_image(img, &img_data);
+
+        return .{ .width = width, .height = height, .img = img };
     }
 
     pub fn initFromFile(file: []const u8, filter: Filter) !Texture {
@@ -116,14 +125,19 @@ pub const Texture = extern struct {
         sg_destroy_image(self.img);
     }
 
-    pub fn setData(self: Texture, data: []u8) void {
+    pub fn setData(self: Texture, pixels: []u8) void {
         std.debug.panic("not implemented\n", .{});
         // aya.gfx.device.setTextureData2D(self.tex, .color, 0, 0, self.width, self.height, 0, &data[0], @intCast(i32, data.len));
     }
 
-    pub fn setColorData(self: Texture, data: []u32) void {
-        std.debug.panic("not implemented\n", .{});
-        // aya.gfx.device.setTextureData2D(self.tex, .color, 0, 0, self.width, self.height, 0, &data[0], @intCast(i32, data.len));
+    pub fn setColorData(self: Texture, pixels: []u32) void {
+        //std.debug.panic("not implemented\n", .{});
+
+        var data: sg_image_data = std.mem.zeroes(sg_image_data);
+        data.subimage[0][0].ptr = pixels.ptr;
+        data.subimage[0][0].size = @intCast(usize, self.width * self.height * @sizeOf(u32));      
+
+        sg_update_image(self.img, &data);
     }
 
     pub fn imTextureID(self: Texture) upaya.imgui.ImTextureID {
