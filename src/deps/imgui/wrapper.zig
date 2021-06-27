@@ -134,7 +134,7 @@ pub fn ogListBoxHeaderVec2(label: [*c]const u8, size: ImVec2) bool {
 
 // just plain helper methods
 pub fn ogOpenPopup(str_id: [*c]const u8) void {
-    igOpenPopup(str_id, ImGuiPopupFlags_None);
+    igOpenPopup(str_id);
 }
 
 pub fn ogColoredButton(color: ImU32, label: [*c]const u8) bool {
