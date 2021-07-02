@@ -6,4 +6,4 @@
 	url = https://github.com/cimgui/cimgui.git
 [submodule "src/deps/zip/zip"]
 	path = src/deps/zip/zip
-	url = https://github.com/kuba--/zip.git
+	url = https://github.com/foxnne/zip.git
