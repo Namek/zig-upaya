@@ -4,6 +4,7 @@ const Builder = std.build.Builder;
 
 pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.build.Target, comptime prefix_path: []const u8) void {
     exe.linkLibC();
+    exe.linkSystemLibrary("c++");
     if (target.isWindows()) {
         exe.linkSystemLibrary("user32");
         exe.linkSystemLibrary("gdi32");
@@ -19,9 +20,8 @@ pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.buil
         exe.linkFramework("OpenGL");
         exe.linkFramework("Audiotoolbox");
         exe.linkFramework("CoreAudio");
-        exe.linkSystemLibrary("c++");
+       
     } else {
-        exe.linkSystemLibrary("c++");
         exe.linkSystemLibrary("X11");
     }
 
