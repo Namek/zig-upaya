@@ -283,6 +283,10 @@ pub fn ogInputText(label: [*c]const u8, buf: [*c]u8, buf_size: usize) bool {
     return igInputText(label, buf, buf_size, ImGuiInputTextFlags_None, null, null);
 }
 
+pub fn ogInputTextEnter(label: [*c]const u8, buf: [*c]u8, buf_size: usize) bool {
+    return igInputText(label, buf, buf_size, ImGuiInputTextFlags_EnterReturnsTrue, null, null);
+}
+
 /// adds an unformatted (igTextUnformatted) tooltip with a specific wrap width
 pub fn ogUnformattedTooltip(text_wrap_pos: f32, text: [*c]const u8) void {
     if (igIsItemHovered(ImGuiHoveredFlags_None)) {
