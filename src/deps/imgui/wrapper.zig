@@ -284,7 +284,7 @@ pub fn ogInputText(label: [*c]const u8, buf: [*c]u8, buf_size: usize) bool {
 }
 
 pub fn ogInputTextEnter(label: [*c]const u8, buf: [*c]u8, buf_size: usize) bool {
-    return igInputText(label, buf, buf_size, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_AutoSelectAll, null, null);
+    return igInputText(label, buf, buf_size, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll, null, null);
 }
 
 /// adds an unformatted (igTextUnformatted) tooltip with a specific wrap width
