@@ -11,6 +11,7 @@ pub fn build(b: *Builder) void {
 }
 
 pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.build.Target, comptime prefix_path: []const u8) void {
+    _ = b;
     if (target.isWindows()) {
         exe.linkSystemLibrary("comdlg32");
         exe.linkSystemLibrary("ole32");

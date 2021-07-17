@@ -208,8 +208,7 @@ fn beginDock() void {
     ogPushStyleVarVec2(ImGuiStyleVar_WindowPadding, .{});
     _ = igBegin("Dockspace", null, window_flags);
     igPopStyleVar(1);
-
-    const io = igGetIO();
+    
     const dockspace_id = igGetIDStr("upaya-dockspace");
     // igDockBuilderRemoveNode(dockspace_id); // uncomment for testing initial layout setup code
     if (igDockBuilderGetNode(dockspace_id) == null) {

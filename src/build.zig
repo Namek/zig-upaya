@@ -18,27 +18,27 @@ pub fn linkArtifact(b: *Builder, artifact: *std.build.LibExeObjStep, target: std
 
     const sokol = Pkg{
         .name = "sokol",
-        .path = prefix_path ++ "src/deps/sokol/sokol.zig",
+        .path = .{.path=prefix_path ++ "src/deps/sokol/sokol.zig"},
     };
     const stb = Pkg{
         .name = "stb",
-        .path = prefix_path ++ "src/deps/stb/stb.zig",
+        .path = .{.path=prefix_path ++ "src/deps/stb/stb.zig"},
     };
     const imgui = Pkg{
         .name = "imgui",
-        .path = prefix_path ++ "src/deps/imgui/imgui.zig",
+        .path = .{.path=prefix_path ++ "src/deps/imgui/imgui.zig"},
     };
     const filebrowser = Pkg{
         .name = "filebrowser",
-        .path = prefix_path ++ "src/deps/filebrowser/filebrowser.zig",
+        .path = .{.path=prefix_path ++ "src/deps/filebrowser/filebrowser.zig"},
     };
     const zip = Pkg{
         .name = "zip",
-        .path = prefix_path ++ "src/deps/zip/zip.zig",
+        .path = .{.path=prefix_path ++ "src/deps/zip/zip.zig"},
     };
     const upaya = Pkg{
         .name = "upaya",
-        .path = prefix_path ++ "src/upaya.zig",
+        .path = .{.path=prefix_path ++ "src/upaya.zig"},
         .dependencies = &[_]Pkg{ stb, filebrowser, sokol, imgui },
     };
 

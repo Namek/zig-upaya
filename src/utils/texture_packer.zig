@@ -90,6 +90,7 @@ pub const TexturePacker = struct {
         }
 
         pub fn initImages(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, size: Size, method: PackingMethod) Atlas {
+            _ = method;
             std.debug.assert(frames.len == files.len and frames.len == images.len);
 
             var res_atlas = Atlas{
@@ -229,7 +230,6 @@ pub const TexturePacker = struct {
                     const h = @intCast(usize, p.canvas.tileHeight);
 
                     const tilesWide = @divExact(@intCast(usize, p.canvas.width), w);
-                    const tilesHigh = @divExact(@intCast(usize, p.canvas.height), h);
                     const tile = @intCast(usize, a.baseTile) + i;
 
                     const col = @mod(tile, tilesWide);
@@ -306,9 +306,6 @@ pub const TexturePacker = struct {
     fn getFramesForPngs(pngs: [][]const u8, origins: *std.ArrayList(math.Point), method: PackingMethod) []stb.stbrp_rect {
         var frames = std.ArrayList(stb.stbrp_rect).init(upaya.mem.allocator);
         for (pngs) |png, i| {
-            var w: c_int = undefined;
-            var h: c_int = undefined;
-
             var tex = upaya.Image.initFromFile(png);
             defer tex.deinit();
 
@@ -333,7 +330,6 @@ pub const TexturePacker = struct {
 
     fn runRectPacker(frames: []stb.stbrp_rect) ?Size {
         var ctx: stb.stbrp_context = undefined;
-        const rects_size = @sizeOf(stb.stbrp_rect) * frames.len;
         const node_count = 4096 * 2;
         var nodes: [node_count]stb.stbrp_node = undefined;
 

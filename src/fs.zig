@@ -8,8 +8,8 @@ pub fn read(allocator: *std.mem.Allocator, filename: []const u8) ![]u8 {
     defer file.close();
 
     const file_size = try file.getEndPos();
-    var buffer = try upaya.mem.allocator.alloc(u8, file_size);
-    const bytes_read = try file.read(buffer[0..buffer.len]);
+    var buffer = try allocator.alloc(u8, file_size);
+    _ = try file.read(buffer[0..buffer.len]);
 
     return buffer;
 }
@@ -17,8 +17,6 @@ pub fn read(allocator: *std.mem.Allocator, filename: []const u8) ![]u8 {
 pub fn write(filename: []const u8, data: []u8) !void {
     const file = try std.fs.cwd().openFile(filename, .{ .write = true });
     defer file.close();
-
-    const file_size = try file.getEndPos();
     try file.writeAll(data);
 }
 

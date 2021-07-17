@@ -130,7 +130,7 @@ pub const Image = struct {
         // find top pixel
         topPixelLoop: while (h > 0) : (h -= 1) {
             const row = self.pixels[y * w .. (y * w) + w];
-            for (row) |p, i| {
+            for (row) |p| {
                 if (p & 0xFF000000 != 0) {
                     // row contains a pixel
                     break :topPixelLoop;
@@ -152,7 +152,7 @@ pub const Image = struct {
         var tempY = self.h - 1;
         bottomPixelLoop: while (h > 0) : (h -= 1) {
             const row = self.pixels[tempY * w .. (tempY * w) + w];
-            for (row) |p, i| {
+            for (row) |p| {
                 if (p & 0xFF000000 != 0) {
                     // row contains a pixel
                     break :bottomPixelLoop;
