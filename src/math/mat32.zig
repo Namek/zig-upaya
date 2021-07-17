@@ -20,6 +20,8 @@ pub const Mat32 = struct {
     pub const identity = Mat32{ .data = .{ 1, 0, 0, 1, 0, 0 } };
 
     pub fn format(self: Mat32, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = options;
+        _ = fmt;
         return writer.print("{d:0.6}, {d:0.6}, {d:0.6}, {d:0.6}, {d:0.6}, {d:0.6}", .{ self.data[0], self.data[1], self.data[2], self.data[3], self.data[4], self.data[5] });
     }
 
@@ -138,41 +140,17 @@ pub const Mat32 = struct {
     }
 
     pub fn transformVec2Slice(self: Mat32, comptime T: type, dst: []T, src: []Vec2) void {
-        for (src) |item, i| {
+        for (src) |_, i| {
             const x = src[i].x * self.data[0] + src[i].y * self.data[2] + self.data[4];
             const y = src[i].x * self.data[1] + src[i].y * self.data[3] + self.data[5];
             dst[i].x = x;
             dst[i].y = y;
         }
     }
-
-    /// transforms the positions in Quad and copies them to dst along with the uvs and color. This could be made generic
-    /// if we have other common Vertex types
-    pub fn transformQuad(self: Mat32, dst: []Vertex, quad: Quad, color: Color) void {
-        @compileError("Vertex doesnt exist");
-        for (dst) |*item, i| {
-            item.*.pos.x = quad.positions[i].x * self.data[0] + quad.positions[i].y * self.data[2] + self.data[4];
-            item.*.pos.y = quad.positions[i].x * self.data[1] + quad.positions[i].y * self.data[3] + self.data[5];
-            item.*.uv = quad.uvs[i];
-            item.*.col = color.value;
-        }
-    }
-
-    pub fn transformVertexSlice(self: Mat32, dst: []Vertex) void {
-        @compileError("Vertex doesnt exist");
-        for (dst) |item, i| {
-            const x = dst[i].pos.x * self.data[0] + dst[i].pos.y * self.data[2] + self.data[4];
-            const y = dst[i].pos.x * self.data[1] + dst[i].pos.y * self.data[3] + self.data[5];
-
-            // we defer setting because src and dst are the same
-            dst[i].pos.x = x;
-            dst[i].pos.y = y;
-        }
-    }
 };
 
 test "mat32 tests" {
-    const i = Mat32.identity;
+    _ = Mat32.identity;
     const mat1 = Mat32.initTransform(.{ .x = 10, .y = 10 });
     var mat2 = Mat32{};
     mat2.setTransform(.{ .x = 10, .y = 10 });
@@ -182,8 +160,8 @@ test "mat32 tests" {
     mat3.setTransform(.{ .x = 10, .y = 10 });
     std.testing.expectEqual(mat3, mat1);
 
-    const mat4 = Mat32.initOrtho(640, 480);
-    const mat5 = Mat32.initOrthoOffCenter(640, 480);
+    _ = Mat32.initOrtho(640, 480);
+    _ = Mat32.initOrthoOffCenter(640, 480);
 
     var mat6 = Mat32.init();
     mat6.translate(10, 20);
@@ -201,7 +179,7 @@ test "mat32 as camera transform" {
     const mat = Mat32.initTransform(.{ .x = 10, .y = 10, .sx = 1, .sy = 1 });
     const mat_inv = mat.inverse();
     const vec = Vec2.init(0, 0);
-    const vec_t = mat.transformVec2(vec);
+    _ = mat.transformVec2(vec);
 
     std.debug.print("\n-- transform  0, 0: {d}\n", .{mat_inv.transformVec2(.{ .x = 0, .y = 0 })});
     std.debug.print("-- transform 10,10: {d}\n", .{mat_inv.transformVec2(.{ .x = 10, .y = 10 })});

@@ -52,7 +52,7 @@ pub extern fn sapp_wgpu_get_resolve_view() ?*const c_void;
 pub extern fn sapp_wgpu_get_depth_stencil_view() ?*const c_void;
 pub extern fn sapp_android_get_native_activity() ?*const c_void;
 
-const enum_unnamed_1 = extern enum(c_int) {
+const enum_unnamed_1 = enum(c_int) {
     SAPP_MAX_TOUCHPOINTS = 8,
     SAPP_MAX_MOUSEBUTTONS = 3,
     SAPP_MAX_KEYCODES = 512,
@@ -63,7 +63,7 @@ pub const SAPP_MAX_TOUCHPOINTS = @enumToInt(enum_unnamed_1.SAPP_MAX_TOUCHPOINTS)
 pub const SAPP_MAX_MOUSEBUTTONS = @enumToInt(enum_unnamed_1.SAPP_MAX_MOUSEBUTTONS);
 pub const SAPP_MAX_KEYCODES = @enumToInt(enum_unnamed_1.SAPP_MAX_KEYCODES);
 pub const SAPP_MAX_ICONIMAGES = @enumToInt(enum_unnamed_1.SAPP_MAX_ICONIMAGES);
-pub const enum_sapp_event_type = extern enum(c_int) {
+pub const enum_sapp_event_type = enum(c_int) {
     SAPP_EVENTTYPE_INVALID = 0,
     SAPP_EVENTTYPE_KEY_DOWN = 1,
     SAPP_EVENTTYPE_KEY_UP = 2,
@@ -117,7 +117,7 @@ pub const SAPP_EVENTTYPE_FILES_DROPPED = @enumToInt(enum_sapp_event_type.SAPP_EV
 pub const _SAPP_EVENTTYPE_NUM = @enumToInt(enum_sapp_event_type._SAPP_EVENTTYPE_NUM);
 pub const _SAPP_EVENTTYPE_FORCE_U32 = @enumToInt(enum_sapp_event_type._SAPP_EVENTTYPE_FORCE_U32);
 pub const sapp_event_type = enum_sapp_event_type;
-pub const enum_sapp_keycode = extern enum(c_int) {
+pub const enum_sapp_keycode = enum(c_int) {
     SAPP_KEYCODE_INVALID = 0,
     SAPP_KEYCODE_SPACE = 32,
     SAPP_KEYCODE_APOSTROPHE = 39,
@@ -370,7 +370,7 @@ pub const struct_sapp_touchpoint = extern struct {
     changed: bool,
 };
 pub const sapp_touchpoint = struct_sapp_touchpoint;
-pub const enum_sapp_mousebutton = extern enum(c_int) {
+pub const enum_sapp_mousebutton = enum(c_int) {
     SAPP_MOUSEBUTTON_LEFT = 0,
     SAPP_MOUSEBUTTON_RIGHT = 1,
     SAPP_MOUSEBUTTON_MIDDLE = 2,
@@ -382,7 +382,7 @@ pub const SAPP_MOUSEBUTTON_RIGHT = @enumToInt(enum_sapp_mousebutton.SAPP_MOUSEBU
 pub const SAPP_MOUSEBUTTON_MIDDLE = @enumToInt(enum_sapp_mousebutton.SAPP_MOUSEBUTTON_MIDDLE);
 pub const SAPP_MOUSEBUTTON_INVALID = @enumToInt(enum_sapp_mousebutton.SAPP_MOUSEBUTTON_INVALID);
 pub const sapp_mousebutton = enum_sapp_mousebutton;
-const enum_unnamed_2 = extern enum(c_int) {
+const enum_unnamed_2 = enum(c_int) {
     SAPP_MODIFIER_SHIFT = 1,
     SAPP_MODIFIER_CTRL = 2,
     SAPP_MODIFIER_ALT = 4,
@@ -476,7 +476,7 @@ pub const struct_sapp_desc = extern struct {
     ios_keyboard_resizes_canvas: bool,
 };
 pub const sapp_desc = struct_sapp_desc;
-pub const enum_sapp_html5_fetch_error = extern enum(c_int) {
+pub const enum_sapp_html5_fetch_error = enum(c_int) {
     SAPP_HTML5_FETCH_ERROR_NO_ERROR,
     SAPP_HTML5_FETCH_ERROR_BUFFER_TOO_SMALL,
     SAPP_HTML5_FETCH_ERROR_OTHER,

@@ -41,7 +41,6 @@ pub const PyxelEdit = struct {
         while (i < pyxelEditJson.canvas.numLayers) : (i += 1) {
             const startText = try std.fmt.allocPrint(upaya.mem.allocator, "\"{d}\": ", .{i});
             if (std.mem.indexOfPos(u8, layersContent, 0, startText)) |start| {
-                var endText = try std.fmt.allocPrint(upaya.mem.allocator, "\"{d}\"", .{i + 1});
 
                 if (std.mem.indexOfPos(u8, layersContent, start + startText.len, " },")) |end| {
                     const layerJSON = try std.json.parse(LayerJSON, &std.json.TokenStream.init(layersContent[start + startText.len .. end + 2]), options);
@@ -94,7 +93,6 @@ pub const PyxelEdit = struct {
         while (true) : (i += 1) {
             const startText = try std.fmt.allocPrint(upaya.mem.allocator, "\"{d}\": ", .{i});
             if (std.mem.indexOfPos(u8, animationsContent, 0, startText)) |start| {
-                var endText = try std.fmt.allocPrint(upaya.mem.allocator, "\"{d}\"", .{i + 1});
 
                 if (std.mem.indexOfPos(u8, animationsContent, start + startText.len, " },")) |end| {
                     const animationsJSON = try std.json.parse(AnimationJSON, &std.json.TokenStream.init(animationsContent[start + startText.len .. end + 2]), options);

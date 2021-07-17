@@ -105,7 +105,7 @@ pub const Texture = extern struct {
         var y: usize = 0;
         while (y < img.h) : (y += 1) {
             var row = img.pixels[y * img.w .. (y * img.w) + img.w];
-            for (row) |pixel, i| {
+            for (row) |_, i| {
                 if (y % 2 == 0) {
                     if (i % 2 != 0) {
                         row[i] = color2.value;
@@ -126,6 +126,8 @@ pub const Texture = extern struct {
     }
 
     pub fn setData(self: Texture, pixels: []u8) void {
+        _ = self;
+        _ = pixels;
         std.debug.panic("not implemented\n", .{});
         // aya.gfx.device.setTextureData2D(self.tex, .color, 0, 0, self.width, self.height, 0, &data[0], @intCast(i32, data.len));
     }

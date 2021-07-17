@@ -1,5 +1,10 @@
 const std = @import("std");
-const Edge = @import("edge.zig").Edge;
+const Edge = enum{
+    left,
+    right,
+    top,
+    bottom
+};
 
 pub const RectF = struct {
     x: f32 = 0,
