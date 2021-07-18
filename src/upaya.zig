@@ -56,6 +56,9 @@ pub const Config = struct {
     app_name: ?[]const u8 = null,
 };
 
+pub var inputBlocked: bool = false;
+pub var inputClearRequired: bool = false;
+
 // private
 const font_awesome_range: [3]ImWchar = [_]ImWchar{ icons.icon_range_min, icons.icon_range_max, 0 };
 
@@ -139,6 +142,18 @@ export fn init() void {
 export fn update() void {
     const width = sapp_width();
     const height = sapp_height();
+    
+    if(inputBlocked) {
+        inputBlocked = false;
+    }
+    if(inputClearRequired) {
+        var io = imgui.igGetIO();
+        for(io.KeysDown) |*k| {
+            k.* = false;
+        }
+        inputClearRequired = false;
+    }
+
     simgui_new_frame(width, height, 0.017);
 
     if (state.config.docking) beginDock();
@@ -176,7 +191,9 @@ export fn event(e: [*c]const sapp_event) void {
         }
     }
 
-    _ = simgui_handle_event(e);
+    if(!inputBlocked) {
+        _ = simgui_handle_event(e);
+    }
 }
 
 export fn cleanup() void {
