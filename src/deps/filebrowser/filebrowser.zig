@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub extern const tinyfd_version: [8]u8;
 pub extern const tinyfd_needs: [*c]const u8;
 pub extern var tinyfd_verbose: c_int;
@@ -16,11 +18,18 @@ pub extern fn tinyfd_colorChooser(aTitle: [*c]const u8, aDefaultHexRGB: [*c]cons
 pub extern fn tinyfd_arrayDialog(aTitle: [*c]const u8, aNumOfColumns: c_int, aColumns: [*c]const [*c]const u8, aNumOfRows: c_int, aCells: [*c]const [*c]const u8) [*c]u8;
 
 pub fn openFileDialog(title: [:0]const u8, path: [:0]const u8, filter: [:0]const u8) [*c]u8 {
+    if (std.mem.eql(u8, "", filter)) {
+        return tinyfd_openFileDialog(title, path, 0, null, null, 0);
+    }
     const filters = &[_][*c]const u8{@ptrCast([*c]const u8, filter)};
     return tinyfd_openFileDialog(title, path, 1, filters, null, 0);
 }
 
 pub fn saveFileDialog(title: [:0]const u8, path: [:0]const u8, filter: [:0]const u8) [*c]u8 {
+    if (std.mem.eql(u8, "", filter)) {
+        return tinyfd_saveFileDialog(title, path, 0, null, null);
+    }
+
     const filters = &[_][*c]const u8{@ptrCast([*c]const u8, filter)};
     return tinyfd_saveFileDialog(title, path, 1, filters, null);
 }
