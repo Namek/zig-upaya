@@ -120,10 +120,7 @@ pub const TexturePacker = struct {
 
             for (images) |im, i| {
                 var sub_image = im;
-                //defer sub_image.deinit();
-                // if (method == .Tight) {
-                //     _ = sub_image.crop();
-                // }
+                
                 image.blit(sub_image, frames[i].x, frames[i].y);
 
                 var height_sub_image = im;
@@ -147,10 +144,6 @@ pub const TexturePacker = struct {
                         containsColor = true;
                     }
                 }
-
-                // if (method == .Tight) {
-                //     _ = height_sub_image.crop();
-                // }
 
                 heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
             }
