@@ -89,8 +89,7 @@ pub const TexturePacker = struct {
             return res_atlas;
         }
 
-        pub fn initImages(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, size: Size, method: PackingMethod) Atlas {
-            _ = method;
+        pub fn initImages(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, size: Size) Atlas {
             std.debug.assert(frames.len == files.len and frames.len == images.len);
 
             var res_atlas = Atlas{
@@ -241,7 +240,6 @@ pub const TexturePacker = struct {
                     var img = upaya.Image.init(w, h);
                     img.fillRect(.{ .width = p.canvas.tileWidth, .height = p.canvas.tileHeight }, upaya.math.Color.transparent);
 
-                    
                     for (p.layers) |l| {
                         if (l.hidden or l.muted) {
                             continue;
@@ -254,17 +252,14 @@ pub const TexturePacker = struct {
 
                         while (j > 0) : (j -= 1) {
                             const src_row = l.texture.pixels[src_x + (yy * l.texture.w) .. (src_x + (yy * l.texture.w)) + img.w];
-                            //std.mem.copy(u32, data, src_row);
+                            std.mem.copy(u32, data, src_row);
 
                             for (src_row) |pixel, k| {
-                                if (data[k] & 0xFF000000 == 0){
-
-                                
-                                if (pixel & 0xFF000000 != 0){
-                                    data[k] = src_row[k];
+                                if (data[k] & 0xFF000000 == 0) {
+                                    if (pixel & 0xFF000000 != 0) {
+                                        data[k] = src_row[k];
+                                    }
                                 }
-                                }
-
                             }
 
                             yy += 1;
@@ -303,7 +298,7 @@ pub const TexturePacker = struct {
         }
     }
 
-    fn getFramesForPngs(pngs: [][]const u8, origins: *std.ArrayList(math.Point), method: PackingMethod) []stb.stbrp_rect {
+    pub fn getFramesForPngs(pngs: [][]const u8, origins: *std.ArrayList(math.Point), method: PackingMethod) []stb.stbrp_rect {
         var frames = std.ArrayList(stb.stbrp_rect).init(upaya.mem.allocator);
         for (pngs) |png, i| {
             var tex = upaya.Image.initFromFile(png);
@@ -328,7 +323,7 @@ pub const TexturePacker = struct {
         return frames.toOwnedSlice();
     }
 
-    fn runRectPacker(frames: []stb.stbrp_rect) ?Size {
+    pub fn runRectPacker(frames: []stb.stbrp_rect) ?Size {
         var ctx: stb.stbrp_context = undefined;
         const node_count = 4096 * 2;
         var nodes: [node_count]stb.stbrp_node = undefined;

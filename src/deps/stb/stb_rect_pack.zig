@@ -35,7 +35,7 @@ pub const STBRP_HEURISTIC_Skyline_BL_sortHeight = @enumToInt(enum_unnamed_1.STBR
 pub const STBRP_HEURISTIC_Skyline_BF_sortHeight = @enumToInt(enum_unnamed_1.STBRP_HEURISTIC_Skyline_BF_sortHeight);
 const enum_unnamed_1 = enum(c_int) {
     STBRP_HEURISTIC_Skyline_default = 0,
-    STBRP_HEURISTIC_Skyline_BL_sortHeight = 0,
+    //STBRP_HEURISTIC_Skyline_BL_sortHeight = 0,
     STBRP_HEURISTIC_Skyline_BF_sortHeight = 1,
     _,
 };
