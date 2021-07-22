@@ -104,7 +104,7 @@ pub const TexturePacker = struct {
             }
 
             for (files) |file, i| {
-                res_atlas.sprites[i].name = file;
+                res_atlas.sprites[i].name = std.mem.dupe(upaya.mem.allocator, u8, file) catch unreachable;
             }
 
             for (origins) |origin, i| {
@@ -154,6 +154,15 @@ pub const TexturePacker = struct {
 
                 heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
             }
+
+            for (images) |img| {
+                img.deinit();
+            }
+
+            upaya.mem.allocator.free(images);
+            upaya.mem.allocator.free(files);
+            upaya.mem.allocator.free(frames);
+            upaya.mem.allocator.free(origins);
 
             res_atlas.image = image;
             res_atlas.heightmap = heightmap;
