@@ -90,8 +90,6 @@ pub const Image = struct {
             // next row and move our slice to it as well
             src_y += 1;
             yy += 1;
-
-            
         }
     }
 
@@ -123,14 +121,11 @@ pub const Image = struct {
         var bottom = self.h;
 
         top: {
-            
-            while (top < bottom) : (top += 1){
+            while (top < bottom) : (top += 1) {
                 var row = self.pixels[top * self.w .. top * self.w + self.w];
                 if (containsColor(row)) {
                     break :top;
                 }
-                
-                
             }
         }
 
@@ -145,7 +140,7 @@ pub const Image = struct {
             }
         }
 
-        return .{.x = 0, .y=0};
+        return .{ .x = 0, .y = 0 };
     }
 
     fn containsColor(pixels: []u32) bool {
@@ -205,9 +200,7 @@ pub const Image = struct {
             bottom -= 1;
         }
 
-        
-            h += padding;
-        
+        h += padding;
 
         // create a new image and copy over the vertically cropped pixels
         var verticalCroppedImage = Image.init(w, h);
