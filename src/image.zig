@@ -42,7 +42,7 @@ pub const Image = struct {
             std.debug.print("null image!\n", .{});
             unreachable;
         }
-        
+
         defer upaya.stb.stbi_image_free(load_res);
 
         var img = init(@intCast(usize, w), @intCast(usize, h));
@@ -52,7 +52,6 @@ pub const Image = struct {
         }
 
         return img;
-
     }
 
     pub fn deinit(self: Image) void {
@@ -87,10 +86,12 @@ pub const Image = struct {
             const src_row = src.pixels[src_y * src.w .. (src_y * src.w) + src.w];
             std.mem.copy(u32, data, src_row);
 
+            data = self.pixels[x + yy * self.w ..];
             // next row and move our slice to it as well
             src_y += 1;
             yy += 1;
-            data = self.pixels[x + yy * self.w ..];
+
+            
         }
     }
 
@@ -110,6 +111,48 @@ pub const Image = struct {
         var comp: c_int = undefined;
         if (upaya.stb.stbi_info_from_memory(image_contents.ptr, @intCast(c_int, image_contents.len), w, h, &comp) == 1) {
             return true;
+        }
+
+        return false;
+    }
+
+    pub fn cropNew(self: *Image) Point {
+        var left: usize = 0;
+        var top: usize = 0;
+        var right = self.w;
+        var bottom = self.h;
+
+        top: {
+            
+            while (top < bottom) : (top += 1){
+                var row = self.pixels[top * self.w .. top * self.w + self.w];
+                if (containsColor(row)) {
+                    break :top;
+                }
+                
+                
+            }
+        }
+
+        left: {
+            while (left < right) : (left += 1) {
+                var y: usize = self.h;
+                while (y > top) : (y -= 1) {
+                    if (self.pixels[left * self.h + y] & 0xFF000000 != 0) {
+                        break :left;
+                    }
+                }
+            }
+        }
+
+        return .{.x = 0, .y=0};
+    }
+
+    fn containsColor(pixels: []u32) bool {
+        for (pixels) |p| {
+            if (p & 0xFF000000 != 0) {
+                return true;
+            }
         }
 
         return false;
@@ -162,9 +205,9 @@ pub const Image = struct {
             bottom -= 1;
         }
 
-        if (bottom != self.h) {
+        
             h += padding;
-        }
+        
 
         // create a new image and copy over the vertically cropped pixels
         var verticalCroppedImage = Image.init(w, h);
@@ -195,12 +238,10 @@ pub const Image = struct {
             tempY += 1;
         }
 
-        if (leftPixel != 0){
+        if (leftPixel != 0) {
             // pad the left pixel
-        leftPixel -= padding;
-
+            leftPixel -= padding;
         }
-        
 
         // x offset is now the leftmost pixel index
         x = leftPixel;
@@ -229,11 +270,9 @@ pub const Image = struct {
         }
 
         // pad right pixel
-        if ( rightPixel != w){
+        if (rightPixel != w) {
             rightPixel += padding;
-
         }
-        
 
         // create final image
         h = verticalCroppedImage.h;

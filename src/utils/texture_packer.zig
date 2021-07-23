@@ -90,7 +90,7 @@ pub const TexturePacker = struct {
         }
 
         pub fn initImages(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, size: Size) Atlas {
-            std.debug.assert(frames.len == files.len and frames.len == images.len);
+            std.debug.assert(frames.len == files.len and frames.len == origins.len and frames.len == images.len);
 
             var res_atlas = Atlas{
                 .sprites = upaya.mem.allocator.alloc(Sprite, images.len) catch unreachable,
@@ -101,51 +101,53 @@ pub const TexturePacker = struct {
             // convert to upaya rects
             for (frames) |frame, i| {
                 res_atlas.sprites[i].source = .{ .x = frame.x, .y = frame.y, .width = frame.w, .height = frame.h };
+                res_atlas.sprites[i].name = std.mem.dupe(upaya.mem.allocator, u8, files[i]) catch unreachable;
+                res_atlas.sprites[i].origin = origins[i];
             }
 
-            for (files) |file, i| {
-                res_atlas.sprites[i].name = std.mem.dupe(upaya.mem.allocator, u8, file) catch unreachable;
-            }
+            // for (files) |file, i| {
+            //     res_atlas.sprites[i].name = std.mem.dupe(upaya.mem.allocator, u8, file) catch unreachable;
+            // }
 
-            for (origins) |origin, i| {
-                res_atlas.sprites[i].origin = origin;
-            }
+            // for (origins) |origin, i| {
+            //     res_atlas.sprites[i].origin = origin;
+            // }
 
             // generate the atlas
             var image = upaya.Image.init(size.width, size.height);
             image.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
 
-            var heightmap = upaya.Image.init(size.width, size.height);
-            heightmap.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
+            // var heightmap = upaya.Image.init(size.width, size.height);
+            // heightmap.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
 
-            for (images) |im, i| {
-                var sub_image = im;
+            for (images) |img, i| {
+                //var sub_image = im;
                 
-                image.blit(sub_image, frames[i].x, frames[i].y);
+                image.blit(img, frames[i].x, frames[i].y);
 
-                var height_sub_image = im;
-                defer height_sub_image.deinit();
+                //var height_sub_image = im;
+                //defer height_sub_image.deinit();
 
-                var r: u8 = 1;
-                var row: i32 = @intCast(i32, height_sub_image.h);
-                var containsColor: bool = false;
-                var j: usize = height_sub_image.pixels.len - 1;
-                while (j > 0) : (j -= 1) {
-                    var temp_row = @intCast(i32, @divTrunc(j, height_sub_image.w));
+                // var r: u8 = 1;
+                // var row: i32 = @intCast(i32, height_sub_image.h);
+                // var containsColor: bool = false;
+                // var j: usize = height_sub_image.pixels.len - 1;
+                // while (j > 0) : (j -= 1) {
+                //     var temp_row = @intCast(i32, @divTrunc(j, height_sub_image.w));
 
-                    if (temp_row != row and r < 255) {
-                        r += 1;
-                        row = temp_row;
-                    }
+                //     if (temp_row != row and r < 255) {
+                //         r += 1;
+                //         row = temp_row;
+                //     }
 
-                    if (height_sub_image.pixels[j] & 0xFF000000 != 0) {
-                        var color = upaya.math.Color.fromBytes(r, r, r, 255);
-                        height_sub_image.pixels[j] = color.value;
-                        containsColor = true;
-                    }
-                }
+                //     if (height_sub_image.pixels[j] & 0xFF000000 != 0) {
+                //         var color = upaya.math.Color.fromBytes(r, r, r, 255);
+                //         height_sub_image.pixels[j] = color.value;
+                //         containsColor = true;
+                //     }
+                // }
 
-                heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
+                // heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
             }
 
             // for (images) |img| {
@@ -158,7 +160,7 @@ pub const TexturePacker = struct {
             upaya.mem.allocator.free(origins);
 
             res_atlas.image = image;
-            res_atlas.heightmap = heightmap;
+            //res_atlas.heightmap = heightmap;
             return res_atlas;
         }
 
@@ -340,7 +342,7 @@ pub const TexturePacker = struct {
 
         for (texture_sizes) |tex_size| {
             stb.stbrp_init_target(&ctx, tex_size[0], tex_size[1], &nodes, node_count);
-            stb.stbrp_setup_heuristic(&ctx, stb.STBRP_HEURISTIC_Skyline_default);
+            stb.stbrp_setup_heuristic(&ctx, stb.STBRP_HEURISTIC_Skyline_BL_sortHeight);
             if (stb.stbrp_pack_rects(&ctx, frames.ptr, @intCast(c_int, frames.len)) == 1) {
                 return Size{ .width = @intCast(u16, tex_size[0]), .height = @intCast(u16, tex_size[1]) };
             }
