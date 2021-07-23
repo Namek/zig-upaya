@@ -148,9 +148,9 @@ pub const TexturePacker = struct {
                 heightmap.blit(height_sub_image, frames[i].x, frames[i].y);
             }
 
-            for (images) |img| {
-                img.deinit();
-            }
+            // for (images) |img| {
+            //     img.deinit();
+            // }
 
             upaya.mem.allocator.free(images);
             upaya.mem.allocator.free(files);
