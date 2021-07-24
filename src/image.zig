@@ -114,33 +114,77 @@ pub const Image = struct {
         return false;
     }
 
-    pub fn cropNew(self: *Image) Point {
-        var left: usize = 0;
+    pub fn crop(self: *Image) Point {
         var top: usize = 0;
-        var right = self.w;
-        var bottom = self.h;
+        var bottom = self.h - 1;
+        var left: usize = 0;
+        var right = self.w - 1;
 
         top: {
             while (top < bottom) : (top += 1) {
                 var row = self.pixels[top * self.w .. top * self.w + self.w];
                 if (containsColor(row)) {
+                    top -= 1;
+
                     break :top;
                 }
             }
         }
 
+        bottom: {
+            while (bottom > top) : (bottom -= 1) {
+                var row = self.pixels[bottom * self.w - self.w .. bottom * self.w];
+                if (containsColor(row)) {
+                    break :bottom;
+                }
+            }
+        }
+
+        var v_crop_image = Image.init(self.w, bottom - top);
+        std.mem.copy(u32, v_crop_image.pixels, self.pixels[top * self.w .. bottom * self.w]);
+
         left: {
             while (left < right) : (left += 1) {
-                var y: usize = self.h;
+                var y: usize = bottom;
                 while (y > top) : (y -= 1) {
-                    if (self.pixels[left * self.h + y] & 0xFF000000 != 0) {
+                    if (self.pixels[left + y * self.w] & 0xFF000000 != 0) {
+                        left -= 1;
                         break :left;
                     }
                 }
             }
         }
 
-        return .{ .x = 0, .y = 0 };
+        right: {
+            while (right > left) : (right -= 1) {
+                var y: usize = bottom;
+                while (y > top) : (y -= 1) {
+                    if (self.pixels[right + y * self.w] & 0xFF000000 != 0) {
+                        right += 1;
+                        break :right;
+                    }
+                }    
+            }
+        }
+
+        var crop_image = Image.init(right - left, bottom - top);
+
+        var h: usize = crop_image.h;
+        while (h > 0) : (h -= 1) {
+            const row = v_crop_image.pixels[h * v_crop_image.w - v_crop_image.w .. h * v_crop_image.w];
+            const src = row[left..right];
+            const dst = crop_image.pixels[h * crop_image.w - crop_image.w .. h * crop_image.w];
+            std.mem.copy(u32, dst, src);
+        }
+
+        self.h = crop_image.h;
+        self.w = crop_image.w;
+
+        std.mem.copy(u32, self.pixels, crop_image.pixels);
+        v_crop_image.deinit();
+        crop_image.deinit();
+
+        return .{ .x = @intCast(i32, left), .y = @intCast(i32, top) };
     }
 
     fn containsColor(pixels: []u32) bool {
@@ -151,144 +195,5 @@ pub const Image = struct {
         }
 
         return false;
-    }
-
-    /// crops image and returns the origin offset of the new image
-    pub fn crop(self: *Image) Point {
-        const padding: usize = 1;
-
-        var top: usize = 0;
-        var bottom: usize = self.h;
-
-        var x: usize = 0;
-        var y: usize = 0;
-        var w = self.w;
-        var h = self.h;
-
-        // find top pixel
-        topPixelLoop: while (h > 0) : (h -= 1) {
-            const row = self.pixels[y * w .. (y * w) + w];
-            for (row) |p| {
-                if (p & 0xFF000000 != 0) {
-                    // row contains a pixel
-                    break :topPixelLoop;
-                }
-            }
-            y += 1;
-            top += 1;
-        }
-
-        if (top != 0) {
-            top -= padding;
-            //reset h to new h
-            h = self.h - y;
-            // pad y
-            y -= padding;
-        }
-
-        //find bottom pixel
-        var tempY = self.h - 1;
-        bottomPixelLoop: while (h > 0) : (h -= 1) {
-            const row = self.pixels[tempY * w .. (tempY * w) + w];
-            for (row) |p| {
-                if (p & 0xFF000000 != 0) {
-                    // row contains a pixel
-                    break :bottomPixelLoop;
-                }
-            }
-            tempY -= 1;
-            bottom -= 1;
-        }
-
-        h += padding;
-
-        // create a new image and copy over the vertically cropped pixels
-        var verticalCroppedImage = Image.init(w, h);
-
-        std.mem.copy(u32, verticalCroppedImage.pixels, self.pixels[top * w .. bottom * w]);
-
-        //find left pixel
-        w = verticalCroppedImage.w;
-        h = verticalCroppedImage.h;
-        tempY = 0;
-
-        var leftPixel: usize = w;
-
-        while (h > 0) : (h -= 1) {
-            // iterate each row and find the one with the
-            // left most pixel
-            const row = verticalCroppedImage.pixels[tempY * w .. (tempY * w) + w];
-
-            for (row) |p, i| {
-                if (p & 0xFF000000 != 0) {
-                    if (i < leftPixel)
-                        leftPixel = i;
-
-                    break;
-                }
-            }
-
-            tempY += 1;
-        }
-
-        if (leftPixel != 0) {
-            // pad the left pixel
-            leftPixel -= padding;
-        }
-
-        // x offset is now the leftmost pixel index
-        x = leftPixel;
-
-        // reset height for iteration
-        h = verticalCroppedImage.h;
-
-        var rightPixel: usize = 0;
-
-        // find right pixel
-        tempY = 0;
-        while (h > 0) : (h -= 1) {
-            const row = verticalCroppedImage.pixels[tempY * w .. (tempY * w) + w];
-
-            var i = row.len - 1;
-
-            while (i > 0) : (i -= 1) {
-                if (row[i] & 0xFF000000 != 0) {
-                    if (i > rightPixel)
-                        rightPixel = i;
-                    break;
-                }
-            }
-
-            tempY += 1;
-        }
-
-        // pad right pixel
-        if (rightPixel != w) {
-            rightPixel += padding;
-        }
-
-        // create final image
-        h = verticalCroppedImage.h;
-        w = rightPixel - leftPixel;
-        var croppedImage = Image.init(w, h);
-
-        // copy rows into the final cropped image
-        tempY = 0;
-        while (h > 0) : (h -= 1) {
-            const row = verticalCroppedImage.pixels[tempY * verticalCroppedImage.w .. (tempY * verticalCroppedImage.w) + verticalCroppedImage.w];
-            const copy = row[leftPixel..rightPixel];
-            const dest = croppedImage.pixels[tempY * croppedImage.w .. (tempY * croppedImage.w) + croppedImage.w];
-            std.mem.copy(u32, dest, copy);
-
-            tempY += 1;
-        }
-
-        self.w = croppedImage.w;
-        self.h = croppedImage.h;
-
-        // copy pixels into the existing image overwriting
-        std.mem.copy(u32, self.pixels, croppedImage.pixels);
-
-        return .{ .x = @intCast(i32, x), .y = @intCast(i32, y) };
     }
 };
