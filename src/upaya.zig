@@ -88,10 +88,13 @@ pub fn run(config: Config) void {
     if (state.config.onFileDropped == null) {
         app_desc.enable_dragndrop = false;
         app_desc.max_dropped_files = 0;
-    } else app_desc.enable_dragndrop = true;
+    } else {
+        app_desc.enable_dragndrop = true;
+        app_desc.max_dropped_files = 16;
+    }
 
     app_desc.alpha = false;
-    _ = sapp_run(&app_desc);   
+    _ = sapp_run(&app_desc);
 }
 
 // Event functions
@@ -126,7 +129,6 @@ export fn init() void {
         igStyleColorsDark(igGetStyle());
     }
 
-
     igGetStyle().FrameRounding = 0;
     igGetStyle().WindowRounding = 0;
 
@@ -136,19 +138,18 @@ export fn init() void {
     state.pass_action.colors[0].value = .{ .r = 0.15294117647, .g = 0.15686274510, .b = 0.18823529412, .a = 1 };
 
     state.config.init();
-    
 }
 
 export fn update() void {
     const width = sapp_width();
     const height = sapp_height();
-    
-    if(inputBlocked) {
+
+    if (inputBlocked) {
         inputBlocked = false;
     }
-    if(inputClearRequired) {
+    if (inputClearRequired) {
         var io = imgui.igGetIO();
-        for(io.KeysDown) |*k| {
+        for (io.KeysDown) |*k| {
             k.* = false;
         }
         inputClearRequired = false;
@@ -191,7 +192,7 @@ export fn event(e: [*c]const sapp_event) void {
         }
     }
 
-    if(!inputBlocked) {
+    if (!inputBlocked) {
         _ = simgui_handle_event(e);
     }
 }
@@ -225,7 +226,7 @@ fn beginDock() void {
     ogPushStyleVarVec2(ImGuiStyleVar_WindowPadding, .{});
     _ = igBegin("Dockspace", null, window_flags);
     igPopStyleVar(1);
-    
+
     const dockspace_id = igGetIDStr("upaya-dockspace");
     // igDockBuilderRemoveNode(dockspace_id); // uncomment for testing initial layout setup code
     if (igDockBuilderGetNode(dockspace_id) == null) {
