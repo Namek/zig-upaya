@@ -29,6 +29,8 @@ usingnamespace sokol;
 usingnamespace imgui;
 
 var timer: std.time.Timer = undefined;
+var delta_time: f64 = 0.017;
+var delta_time_set: bool = false;
 
 pub const Config = struct {
     init: fn () void,
@@ -157,10 +159,16 @@ export fn update() void {
         inputClearRequired = false;
     }
 
-    var seconds = @intToFloat(f64,timer.read()) / 1000000000;
-    var frames = @intToFloat(f64, sokol.sapp_frame_count());
+    if (!delta_time_set) {
+        if (timer.read() >= 1_000_000_000) {
+            var frames = @intToFloat(f64, sokol.sapp_frame_count());
+            delta_time = 1 / frames;
+            delta_time_set = true;
+            timer = undefined;
+        }
+    }
 
-    simgui_new_frame(width, height, time / seconds );
+    simgui_new_frame(width, height, delta_time);
 
     if (state.config.docking) beginDock();
     state.config.update();
