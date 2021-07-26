@@ -28,6 +28,8 @@ pub const importers = @import("utils/importers/importers.zig");
 usingnamespace sokol;
 usingnamespace imgui;
 
+var timer: std.time.Timer = undefined;
+
 pub const Config = struct {
     init: fn () void,
     update: fn () void,
@@ -124,7 +126,6 @@ export fn init() void {
     var io = igGetIO();
     if (state.config.docking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigDockingWithShift = true;
-
     if (state.config.dark_style) {
         igStyleColorsDark(igGetStyle());
     }
@@ -138,6 +139,7 @@ export fn init() void {
     state.pass_action.colors[0].value = .{ .r = 0.15294117647, .g = 0.15686274510, .b = 0.18823529412, .a = 1 };
 
     state.config.init();
+    timer = std.time.Timer.start() catch unreachable;
 }
 
 export fn update() void {
@@ -155,7 +157,10 @@ export fn update() void {
         inputClearRequired = false;
     }
 
-    simgui_new_frame(width, height, 0.017);
+    var seconds = @intToFloat(f64,timer.read()) / 1000000000;
+    var frames = @intToFloat(f64, sokol.sapp_frame_count());
+
+    simgui_new_frame(width, height, time / seconds );
 
     if (state.config.docking) beginDock();
     state.config.update();
