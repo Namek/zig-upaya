@@ -83,10 +83,9 @@ pub const Image = struct {
         var data = self.pixels[x + yy * self.w ..];
         var src_y: usize = 0;
         while (h > 0) : (h -= 1) {
+            data = self.pixels[x + yy * self.w ..];
             const src_row = src.pixels[src_y * src.w .. (src_y * src.w) + src.w];
             std.mem.copy(u32, data, src_row);
-
-            data = self.pixels[x + yy * self.w ..];
             // next row and move our slice to it as well
             src_y += 1;
             yy += 1;
