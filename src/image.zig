@@ -92,6 +92,27 @@ pub const Image = struct {
         }
     }
 
+    pub fn blitWithoutTransparent (self: *Image, src: Image, x: usize, y: usize) void {
+        var yy = y;
+        var h = src.h;
+
+        var data = self.pixels[x + yy * self.w ..];
+        var src_y: usize = 0;
+        while (h > 0) : (h -= 1) {
+            data = self.pixels[x + yy * self.w ..];
+            const src_row = src.pixels[src_y * src.w .. (src_y * src.w) + src.w];
+            var xx: usize = 0;
+            while (xx < src_row.len) : (xx += 1) {
+                if (src_row[xx] != 0x00000000)
+                    data[xx] = src_row[xx];
+            }
+            // next row and move our slice to it as well
+            src_y += 1;
+            yy += 1;
+        }
+
+    }
+
     pub fn asTexture(self: Image, filter: Texture.Filter) Texture {
         return Texture.initWithColorData(self.pixels, @intCast(i32, self.w), @intCast(i32, self.h), filter, .clamp);
     }
