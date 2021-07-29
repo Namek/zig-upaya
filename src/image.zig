@@ -92,7 +92,7 @@ pub const Image = struct {
         }
     }
 
-    pub fn blitWithoutTransparent (self: *Image, src: Image, x: usize, y: usize) void {
+    pub fn blitWithoutTransparent(self: *Image, src: Image, x: usize, y: usize) void {
         var yy = y;
         var h = src.h;
 
@@ -110,7 +110,6 @@ pub const Image = struct {
             src_y += 1;
             yy += 1;
         }
-
     }
 
     pub fn asTexture(self: Image, filter: Texture.Filter) Texture {
@@ -132,6 +131,35 @@ pub const Image = struct {
         }
 
         return false;
+    }
+
+    pub fn cropToPoints(self: *Image, tl: Point, br: Point) Point {
+        var top = @intCast(usize, tl.y);
+        var bottom = @intCast(usize, br.y);
+        var left = @intCast(usize, tl.x);
+        var right = @intCast(usize, br.x);
+
+        var v_crop_image = Image.init(self.w, bottom - top);
+        std.mem.copy(u32, v_crop_image.pixels, self.pixels[top * self.w .. bottom * self.w]);
+
+        var crop_image = Image.init(right - left, bottom - top);
+
+        var h: usize = crop_image.h;
+        while (h > 0) : (h -= 1) {
+            const row = v_crop_image.pixels[h * v_crop_image.w - v_crop_image.w .. h * v_crop_image.w];
+            const src = row[left..right];
+            const dst = crop_image.pixels[h * crop_image.w - crop_image.w .. h * crop_image.w];
+            std.mem.copy(u32, dst, src);
+        }
+
+        self.h = crop_image.h;
+        self.w = crop_image.w;
+
+        std.mem.copy(u32, self.pixels, crop_image.pixels);
+        v_crop_image.deinit();
+        crop_image.deinit();
+
+        return .{ .x = @intCast(i32, left), .y = @intCast(i32, top) };
     }
 
     pub fn crop(self: *Image) Point {
@@ -183,7 +211,7 @@ pub const Image = struct {
                         right += 1;
                         break :right;
                     }
-                }    
+                }
             }
         }
 
