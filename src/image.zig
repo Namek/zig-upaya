@@ -92,17 +92,52 @@ pub const Image = struct {
         }
     }
 
-    pub fn blitWithoutTransparent(self: *Image, src: Image, x: usize, y: usize) void {
-        var yy = y;
-        var h = src.h;
+    pub fn blitWithoutTransparent(self: *Image, src: Image, pos_x: i32, pos_y: i32) void {
+        var x: usize = 0;
+        var y: usize = 0;
 
-        var data = self.pixels[x + yy * self.w ..];
+        var src_x: usize = 0;
         var src_y: usize = 0;
+        var src_w: usize = src.w;
+        var src_h: usize = src.h;
+
+        if (pos_x + @intCast(i32, src.w) < 0)
+            return;
+
+        if (pos_x > self.w)
+            return;
+
+        if (pos_y + @intCast(i32,src.h) < 0)
+            return;
+
+        if (pos_y > self.h)
+            return;
+
+        if (pos_x < 0) {
+            x = 0;
+            src_x = @intCast(usize, std.math.absInt(pos_x) catch unreachable);
+            src_w = @intCast(usize, @intCast(i32, src_w) + pos_x);
+        }else {
+            x = @intCast(usize, pos_x);
+        }
+
+        if (pos_y < 0) {
+            y = 0;
+            src_h += @intCast(usize, @intCast(i32, src_h) + pos_y);
+            src_y = @intCast(usize, std.math.absInt(pos_y) catch unreachable); 
+        }else {
+            y = @intCast(usize, pos_y);
+        }
+
+        var yy = y;
+        var h = src_h;
+        
+        
         while (h > 0) : (h -= 1) {
-            data = self.pixels[x + yy * self.w ..];
-            const src_row = src.pixels[src_y * src.w .. (src_y * src.w) + src.w];
+            const data = self.pixels[x + yy * self.w ..];
+            const src_row = src.pixels[src_x + src_y * src.w .. src_x + (src_y * src.w) + src_w];
             var xx: usize = 0;
-            while (xx < src_row.len) : (xx += 1) {
+            while (xx < src_w) : (xx += 1) {
                 if (src_row[xx] != 0x00000000)
                     data[xx] = src_row[xx];
             }
