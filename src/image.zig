@@ -119,22 +119,23 @@ pub const Image = struct {
             src_w = @intCast(usize, @intCast(i32, src_w) + pos_x);
         }else {
             x = @intCast(usize, pos_x);
+            if (x + src_w > self.w)
+                src_w = self.w - x;
         }
 
         if (pos_y < 0) {
             y = 0;
-            src_h += @intCast(usize, @intCast(i32, src_h) + pos_y);
+            src_h = @intCast(usize, @intCast(i32, src_h) + pos_y);
             src_y = @intCast(usize, std.math.absInt(pos_y) catch unreachable); 
         }else {
             y = @intCast(usize, pos_y);
+            if (y + src_h > self.h)
+                src_h = self.h - y;
         }
 
-        var yy = y;
-        var h = src_h;
-        
-        
-        while (h > 0) : (h -= 1) {
-            const data = self.pixels[x + yy * self.w ..];
+        var h: usize = 0;
+        while (h < src_h) : (h += 1) {
+            const data = self.pixels[x + y * self.w ..];
             const src_row = src.pixels[src_x + src_y * src.w .. src_x + (src_y * src.w) + src_w];
             var xx: usize = 0;
             while (xx < src_w) : (xx += 1) {
@@ -143,7 +144,7 @@ pub const Image = struct {
             }
             // next row and move our slice to it as well
             src_y += 1;
-            yy += 1;
+            y += 1;
         }
     }
 
