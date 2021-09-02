@@ -6,7 +6,7 @@ pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.buil
     exe.linkLibC();
 
     if (target.isDarwin()) {
-        addMacosSdkDirs(b, exe) catch unreachable;
+        addMacosSdkDirs(b, target, exe) catch unreachable;
         exe.linkFramework("Foundation");
         exe.linkFramework("Cocoa");
         exe.linkFramework("Quartz");
@@ -30,11 +30,12 @@ pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.buil
 }
 
 /// macOS helper function to add SDK search paths
-fn addMacosSdkDirs(b: *Builder, step: *std.build.LibExeObjStep) !void {
-    const sdk_dir = try std.zig.system.getSDKPath(b.allocator);
-    const framework_dir = try std.mem.concat(b.allocator, u8, &[_][]const u8 { sdk_dir, "/System/Library/Frameworks" });
-    // const usrinclude_dir = try std.mem.concat(b.allocator, u8, &[_][]const u8 { sdk_dir, "/usr/include"});
-    step.addFrameworkDir(framework_dir);
-    // step.addIncludeDir(usrinclude_dir);
-}
+fn addMacosSdkDirs(b: *Builder, target: std.build.Target, step: *std.build.LibExeObjStep) !void {
+    const sdk_dir = try std.zig.system.darwin.getSDKPath(b.allocator, target.toTarget());
 
+    if (sdk_dir) |dir| {
+        const framework_dir = try std.mem.concat(b.allocator, u8, &[_][]const u8{ dir, "/System/Library/Frameworks" });
+        step.addFrameworkDir(framework_dir);
+    }
+
+}
