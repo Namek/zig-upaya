@@ -6,10 +6,21 @@ const math = upaya.math;
 const stb = upaya.stb;
 
 pub const TexturePacker = struct {
+
+    pub const Size = struct {
+        width: u16,
+        height: u16,
+    };
+
     pub const Sprite = struct {
         name: []const u8,
         source: math.Rect,
         origin: math.Point,
+    };
+
+    pub const Animation = struct {
+        name: []const u8,
+        indexes: []usize,
     };
 
     pub const Atlas = struct {
@@ -49,7 +60,6 @@ pub const TexturePacker = struct {
             upaya.mem.allocator.free(origins);
 
             res_atlas.image = image;
-            //res_atlas.heightmap = heightmap;
             return res_atlas;
         }
 
@@ -69,8 +79,8 @@ pub const TexturePacker = struct {
             var out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, img_filename }) catch unreachable;
             self.image.save(out_file);
 
-            out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, heightmap_filename }) catch unreachable;
-            self.heightmap.save(out_file);
+            // out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, heightmap_filename }) catch unreachable;
+            // self.heightmap.save(out_file);
 
             out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, atlas_filename }) catch unreachable;
             var handle = std.fs.cwd().createFile(out_file, .{}) catch unreachable;
@@ -81,11 +91,6 @@ pub const TexturePacker = struct {
 
             std.json.stringify(.{ .sprites = self.sprites }, options, out_stream) catch unreachable;
         }
-    };
-
-    pub const Size = struct {
-        width: u16,
-        height: u16,
     };
 
     pub fn runRectPacker(frames: []stb.stbrp_rect) ?Size {

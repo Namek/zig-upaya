@@ -25,6 +25,10 @@ pub fn openFileDialog(title: [:0]const u8, path: [:0]const u8, filter: [:0]const
     return tinyfd_openFileDialog(title, path, 1, filters, null, 0);
 }
 
+pub fn selectFolderDialog(title: [:0]const u8, path: [:0]const u8) [*c]u8 {
+    return tinyfd_selectFolderDialog(title, path);
+}
+
 pub fn saveFileDialog(title: [:0]const u8, path: [:0]const u8, filter: [:0]const u8) [*c]u8 {
     if (std.mem.eql(u8, "", filter)) {
         return tinyfd_saveFileDialog(title, path, 0, null, null);
