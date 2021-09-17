@@ -30,7 +30,7 @@ pub const TexturePacker = struct {
         image: upaya.Image = undefined,
         heightmap: upaya.Image = undefined,
 
-        pub fn init(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, size: Size) Atlas {
+        pub fn init(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, heightmaps: []upaya.Image, size: Size) Atlas {
             std.debug.assert(frames.len == files.len and frames.len == origins.len and frames.len == images.len);
 
             var res_atlas = Atlas{
@@ -54,12 +54,20 @@ pub const TexturePacker = struct {
                 image.blit(img, frames[i].x, frames[i].y);
             }
 
+            var heightmap = upaya.Image.init(size.width, size.height);
+            heightmap.fillRect(.{ .width = size.width, .height = size.height }, upaya.math.Color.transparent);
+
+            for (heightmaps) |img, i| {
+                heightmap.blit(img, frames[i].x, frames[i].y);
+            }
+
             upaya.mem.allocator.free(images);
             upaya.mem.allocator.free(files);
             upaya.mem.allocator.free(frames);
             upaya.mem.allocator.free(origins);
 
             res_atlas.image = image;
+            res_atlas.heightmap = heightmap;
             return res_atlas;
         }
 
