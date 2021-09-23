@@ -6,7 +6,6 @@ const math = upaya.math;
 const stb = upaya.stb;
 
 pub const TexturePacker = struct {
-
     pub const Size = struct {
         width: u16,
         height: u16,
