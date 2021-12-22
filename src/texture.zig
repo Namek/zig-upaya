@@ -1,9 +1,9 @@
 const std = @import("std");
 const upaya = @import("upaya.zig");
-usingnamespace upaya.sokol;
+const sokol = upaya.sokol;
 
 pub const Texture = extern struct {
-    img: upaya.sokol.sg_image = undefined,
+    img: sokol.sg_image = undefined,
     width: i32 = 0,
     height: i32 = 0,
 
@@ -11,7 +11,7 @@ pub const Texture = extern struct {
     pub const Wrap = enum { clamp, repeat };
 
     pub fn initOffscreen(width: i32, height: i32, filter: Filter) Texture {
-        var img_desc = std.mem.zeroes(sg_image_desc);
+        var img_desc = std.mem.zeroes(sokol.sg_image_desc);
         img_desc.render_target = true;
         img_desc.width = width;
         img_desc.height = height;
@@ -19,11 +19,11 @@ pub const Texture = extern struct {
         img_desc.min_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
         img_desc.mag_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
 
-        return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
+        return .{ .width = width, .height = height, .img = sokol.sg_make_image(&img_desc) };
     }
 
     pub fn init(width: i32, height: i32, filter: Filter) Texture {
-        var img_desc = std.mem.zeroes(sg_image_desc);
+        var img_desc = std.mem.zeroes(sokol.sg_image_desc);
         img_desc.width = width;
         img_desc.height = height;
         img_desc.pixel_format = .SG_PIXELFORMAT_RGBA8;
@@ -33,7 +33,7 @@ pub const Texture = extern struct {
         img_desc.mag_filter = if (filter == .linear) .SG_FILTER_LINEAR else .SG_FILTER_NEAREST;
         img_desc.content.subimage[0][0].size = width * height * 4 * @sizeOf(u8);
 
-        return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
+        return .{ .width = width, .height = height, .img = sokol.sg_make_image(&img_desc) };
     }
 
     pub fn initTransparent(width: i32, height: i32) Texture {
@@ -44,7 +44,7 @@ pub const Texture = extern struct {
     }
 
     pub fn initWithData(pixels: []u8, width: i32, height: i32, filter: Filter) Texture {
-        var img_desc = std.mem.zeroes(sg_image_desc);
+        var img_desc = std.mem.zeroes(sokol.sg_image_desc);
         img_desc.width = width;
         img_desc.height = height;
         img_desc.pixel_format = .SG_PIXELFORMAT_RGBA8;
@@ -57,11 +57,11 @@ pub const Texture = extern struct {
         img_desc.label = "upaya-texture";
 
 
-        return .{ .width = width, .height = height, .img = sg_make_image(&img_desc) };
+        return .{ .width = width, .height = height, .img = sokol.sg_make_image(&img_desc) };
     }
 
     pub fn initWithColorData(pixels: []u32, width: i32, height: i32, filter: Filter, wrap: Wrap) Texture {
-        var img_desc = std.mem.zeroes(sg_image_desc);
+        var img_desc = std.mem.zeroes(sokol.sg_image_desc);
         img_desc.width = width;
         img_desc.height = height;
         img_desc.pixel_format = .SG_PIXELFORMAT_RGBA8;
@@ -74,13 +74,13 @@ pub const Texture = extern struct {
         img_desc.label = "upaya-texture";
         img_desc.usage = .SG_USAGE_DYNAMIC;
 
-        var img = sg_make_image(&img_desc);
+        var img = sokol.sg_make_image(&img_desc);
 
-        var img_data: sg_image_data = std.mem.zeroes(sg_image_data);
+        var img_data: sokol.sg_image_data = std.mem.zeroes(sokol.sg_image_data);
         img_data.subimage[0][0].ptr = pixels.ptr;
         img_data.subimage[0][0].size = @intCast(usize, width * height * @sizeOf(u32));
 
-        sg_update_image(img, &img_data);
+        sokol.sg_update_image(img, &img_data);
 
         return .{ .width = width, .height = height, .img = img };
     }
@@ -122,7 +122,7 @@ pub const Texture = extern struct {
     }
 
     pub fn deinit(self: Texture) void {
-        sg_destroy_image(self.img);
+        sokol.sg_destroy_image(self.img);
     }
 
     pub fn setData(self: Texture, pixels: []u8) void {
@@ -135,11 +135,11 @@ pub const Texture = extern struct {
     pub fn setColorData(self: Texture, pixels: []u32) void {
         //std.debug.panic("not implemented\n", .{});
 
-        var data: sg_image_data = std.mem.zeroes(sg_image_data);
+        var data: sokol.sg_image_data = std.mem.zeroes(sokol.sg_image_data);
         data.subimage[0][0].ptr = pixels.ptr;
         data.subimage[0][0].size = @intCast(usize, self.width * self.height * @sizeOf(u32));      
 
-        sg_update_image(self.img, &data);
+        sokol.sg_update_image(self.img, &data);
     }
 
     pub fn imTextureID(self: Texture) upaya.imgui.ImTextureID {

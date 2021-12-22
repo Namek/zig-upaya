@@ -9,7 +9,7 @@ const imgui_build = @import("deps/imgui/build.zig");
 const filebrowser_build = @import("deps/filebrowser/build.zig");
 const zip_build = @import("deps/zip/build.zig");
 
-pub fn linkArtifact(b: *Builder, artifact: *std.build.LibExeObjStep, target: std.build.Target, comptime prefix_path: []const u8) void {
+pub fn linkArtifact(b: *Builder, artifact: *std.build.LibExeObjStep, target: std.zig.CrossTarget, comptime prefix_path: []const u8) void {
     sokol_build.linkArtifact(b, artifact, target, prefix_path);
     stb_build.linkArtifact(b, artifact, target, prefix_path);
     imgui_build.linkArtifact(b, artifact, target, prefix_path);

@@ -41,7 +41,7 @@ pub const TexturePacker = struct {
             // convert to upaya rects
             for (frames) |frame, i| {
                 res_atlas.sprites[i].source = .{ .x = frame.x, .y = frame.y, .width = frame.w, .height = frame.h };
-                res_atlas.sprites[i].name = std.mem.dupe(upaya.mem.allocator, u8, files[i]) catch unreachable;
+                res_atlas.sprites[i].name = upaya.mem.allocator.dupe(u8, files[i]) catch unreachable;
                 res_atlas.sprites[i].origin = origins[i];
             }
 
@@ -84,15 +84,20 @@ pub const TexturePacker = struct {
             const heightmap_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, "_h.png" }) catch unreachable;
             const atlas_filename = std.mem.concat(upaya.mem.allocator, u8, &[_][]const u8{ filename, ".atlas" }) catch unreachable;
 
-            var out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, img_filename }) catch unreachable;
+            var out_file = fs.path.join(upaya.mem.allocator, &[_][]const u8{ folder, img_filename }) catch unreachable;
             self.image.save(out_file);
+            upaya.mem.allocator.free(out_file);
 
-            out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, heightmap_filename }) catch unreachable;
+            out_file = fs.path.join(upaya.mem.allocator, &[_][]const u8{ folder, heightmap_filename }) catch unreachable;
             self.heightmap.save(out_file);
+            upaya.mem.allocator.free(out_file);
 
-            out_file = fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ folder, atlas_filename }) catch unreachable;
+
+            out_file = fs.path.join(upaya.mem.allocator, &[_][]const u8{ folder, atlas_filename }) catch unreachable;
             var handle = std.fs.cwd().createFile(out_file, .{}) catch unreachable;
             defer handle.close();
+            upaya.mem.allocator.free(out_file);
+
 
             const out_stream = handle.writer();
             const options = std.json.StringifyOptions{ .whitespace = .{} };

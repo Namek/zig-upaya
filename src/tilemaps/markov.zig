@@ -1,4 +1,5 @@
 const std = @import("std");
+const upaya = @import("upaya");
 
 pub const Markov = struct {
     rows: std.StringHashMap(std.StringHashMap(u8)),
@@ -27,7 +28,7 @@ pub const Markov = struct {
 
         if (n <= 1) return hashmap.items()[0].key;
 
-        n = aya.math.rand.range(i32, 0, n);
+        n = upaya.math.rand.range(i32, 0, n);
         for (hashmap.items()) |entry| {
             n = n - @intCast(i32, entry.value);
             if (n < 0) return entry.key;
@@ -37,7 +38,7 @@ pub const Markov = struct {
     }
 
     pub fn generateChain(data: []const u8, width: usize, height: usize) []const u8 {
-        aya.math.rand.seed(@intCast(u64, std.time.milliTimestamp()));
+        upaya.math.rand.seed(@intCast(u64, std.time.milliTimestamp()));
 
         var markov = Markov.init();
         defer markov.deinit();
@@ -73,11 +74,11 @@ pub const Markov = struct {
                 item = choose(self.rows.get(item).?);
             }
             // reset item for the next iteration
-            item = choose(self.rows.items()[aya.math.rand.range(usize, 0, self.rows.items().len)].value);
+            item = choose(self.rows.items()[upaya.math.rand.range(usize, 0, self.rows.items().len)].value);
         }
         res.append(self.final) catch unreachable;
 
-        var new_map = aya.mem.allocator.alloc(u8, res.items.len * res.items[0].len) catch unreachable;
+        var new_map = upaya.mem.allocator.alloc(u8, res.items.len * res.items[0].len) catch unreachable;
         var i: usize = 0;
         for (res.items) |row| {
             for (row) |tile| {

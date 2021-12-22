@@ -55,7 +55,7 @@ pub const Rect = struct {
     pub fn contract(self: *Rect, hor: i32, vert: i32) void {
         self.x += hor;
         self.y += vert;
-        self.width -= horiz * 2;
+        self.width -= hor * 2;
         self.height -= vert * 2;
     }
 

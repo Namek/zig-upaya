@@ -3,7 +3,7 @@ const upaya = @import("upaya_cli.zig");
 const fs = std.fs;
 
 /// reads the contents of a file. Returned value is owned by the caller and must be freed!
-pub fn read(allocator: *std.mem.Allocator, filename: []const u8) ![]u8 {
+pub fn read(allocator: std.mem.Allocator, filename: []const u8) ![]u8 {
     const file = try std.fs.cwd().openFile(filename, .{});
     defer file.close();
 
@@ -22,9 +22,9 @@ pub fn write(filename: []const u8, data: []u8) !void {
 
 /// gets a path to `filename` in the save games directory
 pub fn getSaveGamesFile(app: []const u8, filename: []const u8) ![]u8 {
-    const dir = try std.fs.getAppDataDir(upaya.mem.tmp_allocator, app);
+    const dir = try std.fs.getAppDataDir(upaya.mem.allocator, app);
     try std.fs.cwd().makePath(dir);
-    return try std.fs.path.join(upaya.mem.tmp_allocator, &[_][]const u8{ dir, filename });
+    return try std.fs.path.join(upaya.mem.allocator, &[_][]const u8{ dir, filename });
 }
 
 /// saves a serializable struct to disk

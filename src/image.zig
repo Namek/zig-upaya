@@ -15,7 +15,7 @@ pub const Image = struct {
     }
 
     pub fn initFromFile(file: []const u8) Image {
-        const image_contents = upaya.fs.read(upaya.mem.tmp_allocator, file) catch unreachable;
+        const image_contents = upaya.fs.read(upaya.mem.allocator, file) catch unreachable;
 
         var w: c_int = undefined;
         var h: c_int = undefined;
@@ -153,7 +153,8 @@ pub const Image = struct {
     }
 
     pub fn save(self: Image, file: []const u8) void {
-        var c_file = std.cstr.addNullByte(upaya.mem.tmp_allocator, file) catch unreachable;
+        var c_file = std.cstr.addNullByte(upaya.mem.allocator, file) catch unreachable;
+        defer upaya.mem.allocator.free(c_file);
         var bytes = std.mem.sliceAsBytes(self.pixels);
         _ = upaya.stb.stbi_write_png(c_file.ptr, @intCast(c_int, self.w), @intCast(c_int, self.h), 4, bytes.ptr, @intCast(c_int, self.w * 4));
     }
