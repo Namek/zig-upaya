@@ -17,7 +17,7 @@ pub const PyxelEdit = struct {
         var zip_file = @ptrCast([*c]const u8, file);
         var zip = upaya.zip.zip_open(zip_file, 0, 'r');
 
-        var buf: ?*c_void = null;
+        var buf: ?*anyopaque = null;
         var size: u64 = 0;
 
         _ = upaya.zip.zip_entry_open(zip, "docData.json");
@@ -126,7 +126,7 @@ pub const PyxelEdit = struct {
 
         i = 0;
         while (i < pyxelEdit.layers.len) : (i += 1) {
-            var pngBuf: ?*c_void = null;
+            var pngBuf: ?*anyopaque = null;
             var pngSize: u64 = 0;
             const png = try std.fmt.allocPrint(upaya.mem.allocator, "layer{d}.png\u{0}", .{i});
 

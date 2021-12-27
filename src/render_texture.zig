@@ -26,6 +26,6 @@ pub const RenderTexture = extern struct {
     }
 
     pub fn imTextureID(self: RenderTexture) upaya.imgui.ImTextureID {
-        return @intToPtr(*c_void, self.img.id);
+        return @intToPtr(*anyopaque, self.img.id);
     }
 };

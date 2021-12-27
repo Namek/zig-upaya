@@ -17,7 +17,7 @@ pub extern fn sapp_show_mouse(show: bool) void;
 pub extern fn sapp_mouse_shown(...) bool;
 pub extern fn sapp_lock_mouse(lock: bool) void;
 pub extern fn sapp_mouse_locked() bool;
-pub extern fn sapp_userdata() ?*c_void;
+pub extern fn sapp_userdata() ?*anyopaque;
 pub extern fn sapp_query_desc() sapp_desc;
 pub extern fn sapp_request_quit() void;
 pub extern fn sapp_cancel_quit() void;
@@ -35,22 +35,22 @@ pub extern fn sapp_gles2() bool;
 pub extern fn sapp_html5_ask_leave_site(ask: bool) void;
 pub extern fn sapp_html5_get_dropped_file_size(index: c_int) u32;
 pub extern fn sapp_html5_fetch_dropped_file(request: [*c]const sapp_html5_fetch_request) void;
-pub extern fn sapp_metal_get_device() ?*const c_void;
-pub extern fn sapp_metal_get_renderpass_descriptor() ?*const c_void;
-pub extern fn sapp_metal_get_drawable() ?*const c_void;
-pub extern fn sapp_macos_get_window() ?*const c_void;
-pub extern fn sapp_ios_get_window() ?*const c_void;
-pub extern fn sapp_d3d11_get_device() ?*const c_void;
-pub extern fn sapp_d3d11_get_device_context() ?*const c_void;
-pub extern fn sapp_d3d11_get_swap_chain() ?*const c_void;
-pub extern fn sapp_d3d11_get_render_target_view() ?*const c_void;
-pub extern fn sapp_d3d11_get_depth_stencil_view() ?*const c_void;
-pub extern fn sapp_win32_get_hwnd() ?*const c_void;
-pub extern fn sapp_wgpu_get_device() ?*const c_void;
-pub extern fn sapp_wgpu_get_render_view() ?*const c_void;
-pub extern fn sapp_wgpu_get_resolve_view() ?*const c_void;
-pub extern fn sapp_wgpu_get_depth_stencil_view() ?*const c_void;
-pub extern fn sapp_android_get_native_activity() ?*const c_void;
+pub extern fn sapp_metal_get_device() ?*const anyopaque;
+pub extern fn sapp_metal_get_renderpass_descriptor() ?*const anyopaque;
+pub extern fn sapp_metal_get_drawable() ?*const anyopaque;
+pub extern fn sapp_macos_get_window() ?*const anyopaque;
+pub extern fn sapp_ios_get_window() ?*const anyopaque;
+pub extern fn sapp_d3d11_get_device() ?*const anyopaque;
+pub extern fn sapp_d3d11_get_device_context() ?*const anyopaque;
+pub extern fn sapp_d3d11_get_swap_chain() ?*const anyopaque;
+pub extern fn sapp_d3d11_get_render_target_view() ?*const anyopaque;
+pub extern fn sapp_d3d11_get_depth_stencil_view() ?*const anyopaque;
+pub extern fn sapp_win32_get_hwnd() ?*const anyopaque;
+pub extern fn sapp_wgpu_get_device() ?*const anyopaque;
+pub extern fn sapp_wgpu_get_render_view() ?*const anyopaque;
+pub extern fn sapp_wgpu_get_resolve_view() ?*const anyopaque;
+pub extern fn sapp_wgpu_get_depth_stencil_view() ?*const anyopaque;
+pub extern fn sapp_android_get_native_activity() ?*const anyopaque;
 
 const enum_unnamed_1 = enum(c_int) {
     SAPP_MAX_TOUCHPOINTS = 8,
@@ -422,7 +422,7 @@ pub const struct_sapp_event = extern struct {
 };
 pub const sapp_event = struct_sapp_event;
 pub const struct_sapp_range = extern struct {
-    ptr: ?*const c_void,
+    ptr: ?*const anyopaque,
     size: usize,
 };
 pub const sapp_range = struct_sapp_range;
@@ -443,12 +443,12 @@ pub const struct_sapp_desc = extern struct {
     cleanup_cb: ?fn () callconv(.C) void,
     event_cb: ?fn ([*c]const sapp_event) callconv(.C) void,
     fail_cb: ?fn ([*c]const u8) callconv(.C) void,
-    user_data: ?*c_void,
-    init_userdata_cb: ?fn (?*c_void) callconv(.C) void,
-    frame_userdata_cb: ?fn (?*c_void) callconv(.C) void,
-    cleanup_userdata_cb: ?fn (?*c_void) callconv(.C) void,
-    event_userdata_cb: ?fn ([*c]const sapp_event, ?*c_void) callconv(.C) void,
-    fail_userdata_cb: ?fn ([*c]const u8, ?*c_void) callconv(.C) void,
+    user_data: ?*anyopaque,
+    init_userdata_cb: ?fn (?*anyopaque) callconv(.C) void,
+    frame_userdata_cb: ?fn (?*anyopaque) callconv(.C) void,
+    cleanup_userdata_cb: ?fn (?*anyopaque) callconv(.C) void,
+    event_userdata_cb: ?fn ([*c]const sapp_event, ?*anyopaque) callconv(.C) void,
+    fail_userdata_cb: ?fn ([*c]const u8, ?*anyopaque) callconv(.C) void,
     width: c_int,
     height: c_int,
     sample_count: c_int,
@@ -491,16 +491,16 @@ pub const struct_sapp_html5_fetch_response = extern struct {
     error_code: sapp_html5_fetch_error,
     file_index: c_int,
     fetched_size: u32,
-    buffer_ptr: ?*c_void,
+    buffer_ptr: ?*anyopaque,
     buffer_size: u32,
-    user_data: ?*c_void,
+    user_data: ?*anyopaque,
 };
 pub const sapp_html5_fetch_response = struct_sapp_html5_fetch_response;
 pub const struct_sapp_html5_fetch_request = extern struct {
     dropped_file_index: c_int,
     callback: ?fn ([*c]const sapp_html5_fetch_response) callconv(.C) void,
-    buffer_ptr: ?*c_void,
+    buffer_ptr: ?*anyopaque,
     buffer_size: u32,
-    user_data: ?*c_void,
+    user_data: ?*anyopaque,
 };
 pub const sapp_html5_fetch_request = struct_sapp_html5_fetch_request;

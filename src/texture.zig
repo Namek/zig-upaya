@@ -143,7 +143,7 @@ pub const Texture = extern struct {
     }
 
     pub fn imTextureID(self: Texture) upaya.imgui.ImTextureID {
-        return @intToPtr(*c_void, self.img.id);
+        return @intToPtr(*anyopaque, self.img.id);
     }
 
     /// returns true if the image was loaded successfully
