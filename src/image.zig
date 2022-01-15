@@ -200,9 +200,9 @@ pub const Image = struct {
     }
 
     pub fn crop(self: *Image) Point {
-        var top: usize = 0;
+        var top: usize = 1;
         var bottom = self.h - 1;
-        var left: usize = 0;
+        var left: usize = 1;
         var right = self.w - 1;
 
         top: {
@@ -272,7 +272,7 @@ pub const Image = struct {
         return .{ .x = @intCast(i32, left), .y = @intCast(i32, top) };
     }
 
-    fn containsColor(pixels: []u32) bool {
+    pub fn containsColor(pixels: []u32) bool {
         for (pixels) |p| {
             if (p & 0xFF000000 != 0) {
                 return true;
