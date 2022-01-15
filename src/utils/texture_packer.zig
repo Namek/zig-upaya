@@ -20,20 +20,23 @@ pub const TexturePacker = struct {
     pub const Animation = struct {
         name: []const u8,
         indexes: []usize,
+        fps: usize,
     };
 
     pub const Atlas = struct {
         sprites: []Sprite,
+        animations: []Animation,
         width: u16,
         height: u16,
         image: upaya.Image = undefined,
         heightmap: upaya.Image = undefined,
 
-        pub fn init(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, heightmaps: []upaya.Image, size: Size) Atlas {
+        pub fn init(frames: []stb.stbrp_rect, origins: []math.Point, files: [][]const u8, images: []upaya.Image, heightmaps: []upaya.Image, animations: []Animation, size: Size) Atlas {
             std.debug.assert(frames.len == files.len and frames.len == origins.len and frames.len == images.len);
 
             var res_atlas = Atlas{
                 .sprites = upaya.mem.allocator.alloc(Sprite, images.len) catch unreachable,
+                .animations = animations,
                 .width = size.width,
                 .height = size.height,
             };
@@ -92,17 +95,15 @@ pub const TexturePacker = struct {
             self.heightmap.save(out_file);
             upaya.mem.allocator.free(out_file);
 
-
             out_file = fs.path.join(upaya.mem.allocator, &[_][]const u8{ folder, atlas_filename }) catch unreachable;
             var handle = std.fs.cwd().createFile(out_file, .{}) catch unreachable;
             defer handle.close();
             upaya.mem.allocator.free(out_file);
 
-
             const out_stream = handle.writer();
             const options = std.json.StringifyOptions{ .whitespace = .{} };
 
-            std.json.stringify(.{ .sprites = self.sprites }, options, out_stream) catch unreachable;
+            std.json.stringify(.{ .sprites = self.sprites, .animations = self.animations }, options, out_stream) catch unreachable;
         }
     };
 
