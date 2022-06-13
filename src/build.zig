@@ -51,22 +51,22 @@ pub fn linkArtifact(b: *Builder, artifact: *std.build.LibExeObjStep, target: std
     artifact.addPackage(zip);
 }
 
-pub fn linkCommandLineArtifact(b: *Builder, artifact: *std.build.LibExeObjStep, target: std.build.Target, comptime prefix_path: []const u8) void {
+pub fn linkCommandLineArtifact(b: *Builder, artifact: *std.build.LibExeObjStep, target: std.zig.CrossTarget, comptime prefix_path: []const u8) void {
     stb_build.linkArtifact(b, artifact, target, prefix_path);
     zip_build.linkArtifact(b, artifact, target, prefix_path);
 
     const stb = Pkg{
         .name = "stb",
-        .path = prefix_path ++ "src/deps/stb/stb.zig",
+        .path = std.build.FileSource{ .path = prefix_path ++ "src/deps/stb/stb.zig" },
     };
     const upaya = Pkg{
         .name = "upaya",
-        .path = prefix_path ++ "src/upaya_cli.zig",
+        .path = std.build.FileSource{ .path = prefix_path ++ "src/upaya_cli.zig" },
         .dependencies = &[_]Pkg{stb},
     };
     const zip = Pkg{
         .name = "zip",
-        .path = prefix_path ++ "src/deps/zip/zip.zig",
+        .path = std.build.FileSource{ .path = prefix_path ++ "src/deps/zip/zip.zig" },
     };
 
     // packages exported to userland
@@ -77,7 +77,7 @@ pub fn linkCommandLineArtifact(b: *Builder, artifact: *std.build.LibExeObjStep, 
 }
 
 // add tests.zig file runnable via "zig build test"
-pub fn addTests(b: *Builder, target: std.build.Target) void {
+pub fn addTests(b: *Builder, target: std.zig.CrossTarget) void {
     var tst = b.addTest("src/tests.zig");
     linkArtifact(b, tst, target, "");
     const test_step = b.step("test", "Run tests in tests.zig");

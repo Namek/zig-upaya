@@ -8,7 +8,7 @@ pub fn build(b: *Builder) void {
     const target = b.standardTargetOptions(.{});
 
     // use a different cache folder for macos arm builds
-    b.cache_root = if (std.builtin.os.tag == .macos and std.builtin.cpu.arch == std.Target.Cpu.Arch.aarch64) "zig-arm-cache" else "zig-cache";
+    b.cache_root = if (builtin.os.tag == .macos and builtin.cpu.arch == .aarch64) "zig-arm-cache" else "zig-cache";
 
     // first item in list will be added as "run" so `zig build run` will always work
     const examples = [_][2][]const u8{
@@ -36,7 +36,7 @@ pub fn build(b: *Builder) void {
 }
 
 /// creates an exe with all the required dependencies
-fn createExe(b: *Builder, target: std.build.Target, name: []const u8, source: []const u8) !void {
+fn createExe(b: *Builder, target: std.zig.CrossTarget, name: []const u8, source: []const u8) !void {
     const is_cli = std.mem.endsWith(u8, name, "cli");
 
     var exe = b.addExecutable(name, source);
