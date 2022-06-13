@@ -44,7 +44,7 @@ pub fn main() !void {
 fn init() void {
     upaya.colors.setTintColor(Color.aya.asImVec4());
     // TODO: figure out why on windows [25]u8 is saved as an array and not a string
-    if (std.Target.current.os.tag == .windows) {
+    if (builtin.target.os.tag == .windows) {
         state = ToDoState.init();
     } else {
         state = upaya.fs.readPrefsJson(ToDoState, "upaya-todo", "todos.json") catch ToDoState.init();

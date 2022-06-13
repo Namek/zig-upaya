@@ -4,7 +4,7 @@ const Builder = std.build.Builder;
 
 pub fn build(_: *Builder) void {}
 
-pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.build.Target, comptime prefix_path: []const u8) void {
+pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.zig.CrossTarget, comptime prefix_path: []const u8) void {
     exe.linkLibC();
 
     if (target.isDarwin()) {
@@ -26,13 +26,14 @@ pub fn linkArtifact(b: *Builder, exe: *std.build.LibExeObjStep, target: std.buil
     }
 
     exe.addIncludeDir(prefix_path ++ "src/deps/sokol");
-    const c_flags = if (std.Target.current.os.tag == .macos) [_][]const u8{ "-std=c99", "-ObjC", "-fobjc-arc" } else [_][]const u8{"-std=c99"};
+    const c_flags = if (builtin.target.os.tag == .macos) [_][]const u8{ "-std=c99", "-ObjC", "-fobjc-arc" } else [_][]const u8{"-std=c99"};
     exe.addCSourceFile(prefix_path ++ "src/deps/sokol/compile_sokol.c", &c_flags);
 }
 
 /// macOS helper function to add SDK search paths
 fn addMacosSdkDirs(b: *Builder, step: *std.build.LibExeObjStep) !void {
-    const sdk_dir = try std.zig.system.getSDKPath(b.allocator);
+    const sdk = std.zig.system.darwin.getDarwinSDK(b.allocator, builtin.target).?;
+    const sdk_dir = sdk.path;
     const framework_dir = try std.mem.concat(b.allocator, u8, &[_][]const u8 { sdk_dir, "/System/Library/Frameworks" });
     // const usrinclude_dir = try std.mem.concat(b.allocator, u8, &[_][]const u8 { sdk_dir, "/usr/include"});
     step.addFrameworkDir(framework_dir);

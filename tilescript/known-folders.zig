@@ -52,7 +52,7 @@ pub fn getPath(allocator: *std.mem.Allocator, folder: KnownFolder) Error!?[]cons
     var arena = std.heap.ArenaAllocator.init(allocator);
     defer arena.deinit();
 
-    switch (std.builtin.os.tag) {
+    switch (builtin.os.tag) {
         .windows => {
             const folder_spec = windows_folder_spec.get(folder);
 
